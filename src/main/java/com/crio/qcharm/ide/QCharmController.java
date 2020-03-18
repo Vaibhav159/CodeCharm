@@ -156,7 +156,7 @@ public class QCharmController {
   @PostMapping("/undo_new")
   @ResponseBody
   public Object undo(@RequestBody MasterRequest masterRequest) {
-    System.out.println("UNDO NEW");
+    System.out.println("Called Undo");
 
     sourceFileHandler.editLines(masterRequest.getEditRequest());
     sourceFileHandler.undo(masterRequest.getUndoRequest());
@@ -169,7 +169,7 @@ public class QCharmController {
   @PostMapping("/redo_new")
   @ResponseBody
   public Object redo(@RequestBody MasterRequest masterRequest) {
-    System.out.println("REDO NEW");
+    System.out.println("Called Redo");
 
     sourceFileHandler.editLines(masterRequest.getEditRequest());
     sourceFileHandler.redo(masterRequest.getUndoRequest());
