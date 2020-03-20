@@ -143,4 +143,50 @@ public class SourceFileVersionArrayListImpl implements SourceFileVersion {
   public List<String> getAllLines() {
     return this.fileData;
   }
+
+  // TODO: CRIO_TASK_MODULE_SEARCH
+  // Input:
+  // SearchRequest - contains following information
+  // 1. pattern - pattern you want to search
+  // 2. File name - file where you want to search for the pattern
+  // Description:
+  // 1. Find all occurrences of the pattern in the SourceFile
+  // 2. Create an empty list of cursors
+  // 3. For each occurrence starting position add to the list of cursors
+  // 4. return the list of cursors
+  // Recommendation:
+  // 1. Use the simplest string search algorithm that you know.
+  // Reference:
+  // https://www.geeksforgeeks.org/naive-algorithm-for-pattern-searching/
+
+  @Override
+  public List<Cursor> getCursors(SearchRequest searchRequest) {
+    List<Cursor> search = new ArrayList<Cursor>();
+    int start = searchRequest.getStartingLineNo();
+    String pat = searchRequest.getPattern();
+    for (int k = start; k < fileData.size(); k++) {
+      String txt = fileData.get(k);
+      int M = pat.length();
+      int N = txt.length();
+      /* A loop to slide pat one by one */
+      for (int i = 0; i <= N - M; i++) {
+
+        int j;
+
+        /*
+         * For current index i, check for pattern match
+         */
+        for (j = 0; j < M; j++)
+          if (txt.charAt(i + j) != pat.charAt(j)) {
+            break;
+          }
+
+        if (j == M) {
+          search.add(new Cursor(k, i));
+        }
+      }
+    }
+    return search;
+  }
+
 }

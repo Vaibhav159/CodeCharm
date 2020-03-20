@@ -15,6 +15,7 @@ public interface SourceFileVersion {
 
   Page getLinesFrom(PageRequest pageRequest);
 
+  List<Cursor> getCursors(SearchRequest searchRequest);
 
 
 

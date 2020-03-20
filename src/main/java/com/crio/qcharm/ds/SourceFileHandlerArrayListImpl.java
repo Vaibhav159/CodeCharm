@@ -139,4 +139,19 @@ public class SourceFileHandlerArrayListImpl implements SourceFileHandler {
     return obj;
   }
 
+  // TODO: CRIO_TASK_MODULE_SEARCH
+  // Input:
+  // SearchRequest - contains following information
+  // 1. pattern - pattern you want to search
+  // 2. File name - file where you want to search for the pattern
+  // Description:
+  // 1. For the given SourceFile use SourceFileVersionArrayListImpl
+  // .getCursors() to find all occurrences of the pattern in the SourceFile.
+  // 2. return the all occurrences starting position in a list.
+
+  @Override
+  public List<Cursor> search(SearchRequest searchRequest) {
+    return this.obj.getCursors(searchRequest);
+  }
+
 }
