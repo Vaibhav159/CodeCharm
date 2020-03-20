@@ -22,24 +22,28 @@ public class SourceFileHandlerLinkedListImpl implements SourceFileHandler {
 
   @Override
   public SourceFileVersion getLatestSourceFileVersion(String fileName) {
-    return latest;
   }
+
 
   @Override
   public Page loadFile(FileInfo fileInfo) {
   }
 
+
   @Override
   public Page getPrevLines(PageRequest pageRequest) {
   }
+
 
   @Override
   public Page getNextLines(PageRequest pageRequest) {
   }
 
+
   @Override
   public Page getLinesFrom(PageRequest pageRequest) {
   }
+
 
   @Override
   public List<Cursor> search(SearchRequest searchRequest) {
@@ -48,82 +52,64 @@ public class SourceFileHandlerLinkedListImpl implements SourceFileHandler {
 
   @Override
   public void setCopyBuffer(CopyBuffer copyBuffer) {
-    this.copyBuffer = copyBuffer;
   }
+
 
   @Override
   public CopyBuffer getCopyBuffer() {
-    CopyBuffer lastCopyBuffer = this.copyBuffer;
-    this.copyBuffer = new CopyBuffer(new LinkedList<>());
-    return lastCopyBuffer;
   }
+
 
   @Override
   public SourceFileVersion cloneObj(SourceFileVersion ver) {
     return new SourceFileVersionLinkedListImpl((SourceFileVersionLinkedListImpl) ver);
   }
 
+
   @Override
   public void editLines(EditRequest editRequest) {
   }
+
+
 
   @Override
   public void searchReplace(SearchReplaceRequest searchReplaceRequest) {
   }
 
+  // TODO: CRIO_TASK_MODULE_UNDO_REDO
+  // Input:
+  //      UndoRequest
+  //        1. fileName
+  // Description:
+  //      1. For the given file go back by one edit.
+  //      2. If the file is already at its oldest change do nothing
+
   @Override
   public void undo(UndoRequest undoRequest) {
   }
+
+  // TODO: CRIO_TASK_MODULE_UNDO_REDO
+  // Input:
+  //      UndoRequest
+  //        1. fileName
+  // Description:
+  //      1. Re apply the last undone change. Basically reverse the last last undo.
+  //      2. If there was no undo done earlier do nothing.
 
   @Override
   public void redo(UndoRequest undoRequest) {
   }
 
+  // TODO: CRIO_TASK_MODULE_UNDO_REDO
+  // Input:
+  //      None
+  // Description:
+  //      Return the page that was in view as of this edit.
+  //      1. starting line number  -should be same as it was in the last change
+  //      2. Cursor - should return to the same position as it was in the last change
+  //      3. Number of lines - should be same as it was in the last change.
+
   public Page getCursorPage() {
-  }
-
-  public int getDefaultNumberOfLinesPerPage() {
-    return this.DefaultNumberOfLinesPerPage;
-  }
-
-  public SourceFileVersionLinkedListImpl getFirst() {
-    return this.first;
-  }
-
-  public SourceFileVersionLinkedListImpl getLatest() {
-    return this.latest;
-  }
-
-  public String getFileName() {
-    return this.fileName;
-  }
-
-  public Deque<Edits> getQueue() {
-    return this.queue;
-  }
-
-  public Stack<Edits> getRedoStack() {
-    return this.redoStack;
-  }
-
-  public void setFirst(SourceFileVersionLinkedListImpl first) {
-    this.first = first;
-  }
-
-  public void setLatest(SourceFileVersionLinkedListImpl latest) {
-    this.latest = latest;
-  }
-
-  public void setFileName(String fileName) {
-    this.fileName = fileName;
-  }
-
-  public void setQueue(Deque<Edits> queue) {
-    this.queue = queue;
-  }
-
-  public void setRedoStack(Stack<Edits> redoStack) {
-    this.redoStack = redoStack;
   }
 
 }

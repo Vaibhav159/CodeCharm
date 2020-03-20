@@ -103,6 +103,9 @@ public class SourceFileHandlerArrayListImpl implements SourceFileHandler {
   //      None
   // Description:
   //      Return the page that was in view as of this edit.
+  //      1. starting line number  -should be same as it was in the last change
+  //      2. Cursor - should return to the same position as it was in the last change
+  //      3. Number of lines - should be same as it was in the last change.
 
   public Page getCursorPage() {
   }

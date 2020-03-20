@@ -2,7 +2,6 @@ package com.crio.qcharm.ds;
 
 import com.crio.qcharm.request.PageRequest;
 import com.crio.qcharm.request.SearchRequest;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -10,7 +9,12 @@ import java.util.stream.Collectors;
 public class SourceFileVersionLinkedListImpl implements SourceFileVersion {
 
 
+
+
   SourceFileVersionLinkedListImpl(FileInfo fileInfo) {
+  }
+
+  public SourceFileVersionLinkedListImpl() {
   }
 
   public SourceFileVersionLinkedListImpl(SourceFileVersionLinkedListImpl obj) {
@@ -19,10 +23,10 @@ public class SourceFileVersionLinkedListImpl implements SourceFileVersion {
 
   @Override
   public SourceFileVersion apply(List<Edits> edits) {
-    List<String> lines = new ArrayList<>();
+    List<String> lines = new LinkedList<>();
     lines.addAll(lines);
 
-    SourceFileVersionArrayListImpl latest = new SourceFileVersionArrayListImpl();
+    SourceFileVersionLinkedListImpl latest = new SourceFileVersionLinkedListImpl();
 
     for (Edits oneEdit : edits) {
       if (oneEdit instanceof UpdateLines) {
@@ -35,9 +39,12 @@ public class SourceFileVersionLinkedListImpl implements SourceFileVersion {
     return this;
   }
 
+
+
   @Override
   public void apply(SearchReplace searchReplace) {
   }
+
 
   @Override
   public void apply(UpdateLines updateLines) {
@@ -46,17 +53,21 @@ public class SourceFileVersionLinkedListImpl implements SourceFileVersion {
   @Override
   public List<String> getAllLines() {
   }
+
   @Override
   public Page getLinesBefore(PageRequest pageRequest) {
   }
+
 
   @Override
   public Page getLinesAfter(PageRequest pageRequest) {
   }
 
+
   @Override
   public Page getLinesFrom(PageRequest pageRequest) {
   }
+
 
   @Override
   public List<Cursor> getCursors(SearchRequest searchRequest) {
