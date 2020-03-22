@@ -111,6 +111,7 @@ class SourceFileHandlerArrayListImplTest {
   }
 
   @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
   void smallFileLoadingReturnsAllLines() {
     SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList("testfile");
 
@@ -125,6 +126,7 @@ class SourceFileHandlerArrayListImplTest {
   }
 
   @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
   void largeFileLoadingReturnsFiftyLinesOfData() {
     SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList("testfile");
 
@@ -136,6 +138,7 @@ class SourceFileHandlerArrayListImplTest {
   }
 
   @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
   void getNextLinesReturnsEmptyPageIfThereIsNoLinesAfter() {
     String fileName = "testfile";
     SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
@@ -155,6 +158,7 @@ class SourceFileHandlerArrayListImplTest {
   }
 
   @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
   void getNextLinesReturnsLessThanRequestedNumberOfLines() {
     String fileName = "testfile";
     SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
@@ -175,6 +179,7 @@ class SourceFileHandlerArrayListImplTest {
   }
 
   @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
   void getPrevLinesReturnsRequestedNumberOfLines() {
     String fileName = "testfile";
     SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
@@ -195,6 +200,7 @@ class SourceFileHandlerArrayListImplTest {
   }
 
   @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
   void getPrevLinesReturnsEmptyPageIfThereIsNoLinesBefore() {
     String fileName = "testfile";
     SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
@@ -211,6 +217,7 @@ class SourceFileHandlerArrayListImplTest {
   }
 
   @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
   void getPrevLinesReturnsLessThanRequestedNumberOfLines() {
     String fileName = "testfile";
     SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
@@ -231,6 +238,7 @@ class SourceFileHandlerArrayListImplTest {
   }
 
   @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
   void getNextLinesReturnsRequestedNumberOfLines() {
     String fileName = "testfile";
     SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
@@ -251,6 +259,7 @@ class SourceFileHandlerArrayListImplTest {
   }
 
   @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
   void getLinesFromReturnsRequestedNumberOfLines() {
     String fileName = "testfile";
     SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
@@ -333,6 +342,7 @@ class SourceFileHandlerArrayListImplTest {
   }
 
   @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
   void search() {
     String fileName = "testfile";
     SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
@@ -356,6 +366,7 @@ class SourceFileHandlerArrayListImplTest {
 
 
   @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
   void editLines() {
     String fileName = "testfile";
     SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
@@ -384,6 +395,7 @@ class SourceFileHandlerArrayListImplTest {
 
 
   @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
   void insertLinesAtTop() {
     String fileName = "testfile";
     SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
@@ -417,6 +429,7 @@ class SourceFileHandlerArrayListImplTest {
   }
 
   @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
   void insertLinesAtBottom() {
     String fileName = "testfile";
     SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
@@ -450,6 +463,7 @@ class SourceFileHandlerArrayListImplTest {
   }
 
   @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
   void randomInsertUpdateDelete() {
     int seed = 0x1231;
     Random random = new Random(seed);
@@ -494,6 +508,7 @@ class SourceFileHandlerArrayListImplTest {
 
 
   @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
   void searchReplace() {
     String fileName = "testfile";
     SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
@@ -522,6 +537,7 @@ class SourceFileHandlerArrayListImplTest {
 
 
   @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
   void findAfterSearchReplaceTest1() {
     String fileName = "testfile";
     SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
@@ -558,6 +574,7 @@ class SourceFileHandlerArrayListImplTest {
   }
 
   @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
   void findAfterSearchReplaceTest2() {
     String fileName = "testfile";
     SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
@@ -595,6 +612,7 @@ class SourceFileHandlerArrayListImplTest {
   }
 
   @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
   void SearchForNonEmptyStringAndReplaceWithEmptyString() {
     String fileName = "testfile";
     SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
@@ -634,6 +652,7 @@ class SourceFileHandlerArrayListImplTest {
 
 
   @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
   void undoSearchReplace() {
     String fileName = "testfile";
     SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
@@ -668,6 +687,7 @@ class SourceFileHandlerArrayListImplTest {
   }
 
   @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
   void undoEditLines() {
     String fileName = "testfile";
     SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
@@ -701,6 +721,7 @@ class SourceFileHandlerArrayListImplTest {
   }
 
   @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
   void onUndoTheCursorShouldBeReturnedToRightPosition() {
     String fileName = "randomInsertUpdateDelete";
     SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
@@ -744,6 +765,7 @@ class SourceFileHandlerArrayListImplTest {
 //
 //  }
 @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
 void sameContentUpdateDoesNotIncrementVersionTest1() {
   int seed = 0x1231;
   Random random = new Random(seed);
@@ -777,6 +799,7 @@ void sameContentUpdateDoesNotIncrementVersionTest1() {
 }
 
   @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
   void sameContentUpdateDoesNotIncrementVersionTest2() {
     int seed = 0x1231;
     Random random = new Random(seed);
@@ -886,6 +909,7 @@ void sameContentUpdateDoesNotIncrementVersionTest1() {
   }
 
   @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
   void nothingToUndoReturnsLoadedContentTest() {
     int seed = 0x1231;
     Random random = new Random(seed);
@@ -948,6 +972,7 @@ void sameContentUpdateDoesNotIncrementVersionTest1() {
   }
 
   @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
   void randomUpdatesAndUndoTest() {
     int seed = 0x1231;
     Random random = new Random(seed);
