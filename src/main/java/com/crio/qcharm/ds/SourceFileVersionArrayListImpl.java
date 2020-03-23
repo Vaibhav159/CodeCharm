@@ -159,34 +159,81 @@ public class SourceFileVersionArrayListImpl implements SourceFileVersion {
   // Reference:
   // https://www.geeksforgeeks.org/naive-algorithm-for-pattern-searching/
 
+  // TODO: CRIO_TASK_MODULE_IMPROVING_SEARCH
+  // Input:
+  // SearchRequest - contains following information
+  // 1. pattern - pattern you want to search
+  // 2. File name - file where you want to search for the pattern
+  // Description:
+  // 1. Find all occurrences of the pattern in the SourceFile
+  // 2. Create an empty list of cursors
+  // 3. For each occurrence starting position add to the list of cursors
+  // 4. return the list of cursors
+  // Recommendation:
+  // 1. Use FASTER string search algorithm.
+  // 2. Feel free to try any other algorithm/data structure to improve search
+  // speed.
+  // Reference:
+  // https://www.geeksforgeeks.org/kmp-algorithm-for-pattern-searching/
+
   @Override
   public List<Cursor> getCursors(SearchRequest searchRequest) {
     List<Cursor> search = new ArrayList<Cursor>();
     int start = searchRequest.getStartingLineNo();
     String pat = searchRequest.getPattern();
+    int M = pat.length();
+    int lps[] = new int[M];
+    LPS_Array(pat, M, lps);
     for (int k = start; k < fileData.size(); k++) {
       String txt = fileData.get(k);
-      int M = pat.length();
-      int N = txt.length();
-      /* A loop to slide pat one by one */
-      for (int i = 0; i <= N - M; i++) {
+      KMP_search(pat, txt, search, lps, k, M);
+    }
+    return search;
+  }
 
-        int j;
+  void KMP_search(String pat, String txt, List<Cursor> search, int lps[], int k, int M) {
+    int N = txt.length();
+    int i = 0;
+    int j = 0;
 
-        /*
-         * For current index i, check for pattern match
-         */
-        for (j = 0; j < M; j++)
-          if (txt.charAt(i + j) != pat.charAt(j)) {
-            break;
-          }
-
-        if (j == M) {
-          search.add(new Cursor(k, i));
+    while (i < N) {
+      if (pat.charAt(j) == txt.charAt(i)) {
+        i++;
+        j++;
+      }
+      if (j == M) {
+        search.add(new Cursor(k, i - j));
+        j = lps[j - 1];
+      } else if (i < N && pat.charAt(j) != txt.charAt(i)) {
+        if (j != 0) {
+          j = lps[j - 1];
+        } else {
+          i++;
         }
       }
     }
-    return search;
+
+  }
+
+  void LPS_Array(String pat, int M, int lps[]) {
+    int len = 0;
+    int i = 1;
+    lps[0] = 0;
+
+    while (i < M) {
+      if (pat.charAt(i) == pat.charAt(len)) {
+        len++;
+        lps[i] = len;
+        i++;
+      } else {
+        if (len != 0) {
+          len = lps[len - 1];
+        } else {
+          lps[i] = len;
+          i++;
+        }
+      }
+    }
   }
 
 }
