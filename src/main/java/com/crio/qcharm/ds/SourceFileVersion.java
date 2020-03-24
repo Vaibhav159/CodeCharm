@@ -6,6 +6,11 @@ import java.util.List;
 
 public interface SourceFileVersion {
 
+  SourceFileVersion apply(List<Edits> edits);
+
+  void apply(SearchReplace searchReplace);
+
+  void apply(UpdateLines updateLines);
 
   List<String> getAllLines();
 

@@ -8,13 +8,19 @@ import com.crio.qcharm.request.SearchRequest;
 import com.crio.qcharm.request.UndoRequest;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import org.apache.logging.log4j.ThreadContext;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -43,6 +49,10 @@ class SourceFileHandlerArrayListImplTest {
 
     pattern = prefix.toString() + "aa";
     patternGenerator(prefix.toString() + "ab", pattern);
+  }
+
+  List<String> clone(List<String> lst) {
+    return lst.stream().collect(Collectors.toList());
   }
 
   @AfterAll
@@ -101,6 +111,7 @@ class SourceFileHandlerArrayListImplTest {
   }
 
   @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
   void smallFileLoadingReturnsAllLines() {
     SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList("testfile");
 
@@ -115,6 +126,7 @@ class SourceFileHandlerArrayListImplTest {
   }
 
   @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
   void largeFileLoadingReturnsFiftyLinesOfData() {
     SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList("testfile");
 
@@ -126,6 +138,7 @@ class SourceFileHandlerArrayListImplTest {
   }
 
   @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
   void getNextLinesReturnsEmptyPageIfThereIsNoLinesAfter() {
     String fileName = "testfile";
     SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
@@ -145,6 +158,7 @@ class SourceFileHandlerArrayListImplTest {
   }
 
   @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
   void getNextLinesReturnsLessThanRequestedNumberOfLines() {
     String fileName = "testfile";
     SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
@@ -165,6 +179,7 @@ class SourceFileHandlerArrayListImplTest {
   }
 
   @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
   void getPrevLinesReturnsRequestedNumberOfLines() {
     String fileName = "testfile";
     SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
@@ -185,6 +200,7 @@ class SourceFileHandlerArrayListImplTest {
   }
 
   @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
   void getPrevLinesReturnsEmptyPageIfThereIsNoLinesBefore() {
     String fileName = "testfile";
     SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
@@ -201,6 +217,7 @@ class SourceFileHandlerArrayListImplTest {
   }
 
   @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
   void getPrevLinesReturnsLessThanRequestedNumberOfLines() {
     String fileName = "testfile";
     SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
@@ -221,6 +238,7 @@ class SourceFileHandlerArrayListImplTest {
   }
 
   @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
   void getNextLinesReturnsRequestedNumberOfLines() {
     String fileName = "testfile";
     SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
@@ -241,6 +259,7 @@ class SourceFileHandlerArrayListImplTest {
   }
 
   @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
   void getLinesFromReturnsRequestedNumberOfLines() {
     String fileName = "testfile";
     SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
@@ -262,6 +281,7 @@ class SourceFileHandlerArrayListImplTest {
   }
 
   @Test
+  @Timeout(value=15000, unit = TimeUnit.MILLISECONDS)
   void  efficientSearchTest() {
     String fileName = "efficientSearchTest";
     SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
@@ -275,11 +295,15 @@ class SourceFileHandlerArrayListImplTest {
       timeTakenInNs += System.nanoTime() - startTime;
       assertEquals(expectedCursorPositions, cursors);
     }
-    System.out.println(timeTakenInNs);
-    assert (timeTakenInNs < 1500 * 1000 * 1000);
+    System.out.printf("efficientSearchTest timetaken = %d ns\n", timeTakenInNs);
+    assert (timeTakenInNs < 3000000000l);
   }
 
+
+
+
   @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
   void search() {
     String fileName = "testfile";
     SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
@@ -301,6 +325,146 @@ class SourceFileHandlerArrayListImplTest {
   }
 
 
+
+  @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
+  void editLines() {
+    String fileName = "testfile";
+    SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
+
+    int N = 100;
+    FileInfo fileInfo = getLargeSampleFileInfo(fileName, N);
+    sourceFileHandlerArrayListImpl.loadFile(fileInfo);
+
+    List<String> changedLines = new ArrayList<>();
+    for (int i = 0; i < 35; ++i) {
+      StringBuffer buffer = new StringBuffer("LineNumber");
+      buffer.append(i);
+      changedLines.add(buffer.toString());
+    }
+
+    EditRequest editRequest = new EditRequest(35, 70, changedLines, fileName, new Cursor(0,0));
+    sourceFileHandlerArrayListImpl.editLines(editRequest);
+
+    PageRequest pageRequest = new PageRequest(0, fileName, N, new Cursor(0,0));
+    Page page = sourceFileHandlerArrayListImpl.getLinesFrom(pageRequest);
+
+    assertEquals(fileInfo.getLines().subList(0, 35), page.getLines().subList(0,35));
+    assertEquals(changedLines, page.getLines().subList(35, 70));
+    assertEquals(fileInfo.getLines().subList(70, N), page.getLines().subList(70,N));
+  }
+
+
+  @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
+  void insertLinesAtTop() {
+    String fileName = "testfile";
+    SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
+
+    int N = 10;
+    int K = 3;
+    FileInfo fileInfo = getLargeSampleFileInfo(fileName, N);
+    sourceFileHandlerArrayListImpl.loadFile(fileInfo);
+
+    List<String> changedLines = new ArrayList<>();
+    for (int i = 0; i < K; ++i) {
+      StringBuffer buffer = new StringBuffer("LineNumber");
+      buffer.append(i);
+      changedLines.add(buffer.toString());
+    }
+    List<String> newContents = new ArrayList<>();
+
+    newContents.addAll(changedLines);
+    newContents.addAll(fileInfo.getLines());
+
+    Cursor cursor = new Cursor(0, 0);
+    EditRequest editRequest = new EditRequest( 0, N, newContents, fileName, cursor);
+    sourceFileHandlerArrayListImpl.editLines(editRequest);
+
+    PageRequest pageRequest = new PageRequest(0, fileName, N + K, new Cursor(0,0));
+    Page page = sourceFileHandlerArrayListImpl.getLinesFrom(pageRequest);
+
+    assertEquals(newContents, page.getLines());
+    assertEquals(0, page.getStartingLineNo());
+    assertEquals(cursor, page.getCursorAt());
+  }
+
+  @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
+  void insertLinesAtBottom() {
+    String fileName = "testfile";
+    SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
+
+    int N = 10;
+    int K = 3;
+    FileInfo fileInfo = getLargeSampleFileInfo(fileName, N);
+    sourceFileHandlerArrayListImpl.loadFile(fileInfo);
+
+    List<String> changedLines = new ArrayList<>();
+    for (int i = 0; i < K; ++i) {
+      StringBuffer buffer = new StringBuffer("LineNumber");
+      buffer.append(i);
+      changedLines.add(buffer.toString());
+    }
+    List<String> newContents = new ArrayList<>();
+
+    newContents.addAll(fileInfo.getLines());
+    newContents.addAll(changedLines);
+
+    Cursor cursor = new Cursor(0, 0);
+    EditRequest editRequest = new EditRequest( 0, N, newContents, fileName, cursor);
+    sourceFileHandlerArrayListImpl.editLines(editRequest);
+
+    PageRequest pageRequest = new PageRequest(0, fileName, N + K, new Cursor(0,0));
+    Page page = sourceFileHandlerArrayListImpl.getLinesFrom(pageRequest);
+
+    assertEquals(newContents, page.getLines());
+    assertEquals(0, page.getStartingLineNo());
+    assertEquals(cursor, page.getCursorAt());
+  }
+
+  @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
+  void randomInsertUpdateDelete() {
+    int seed = 0x1231;
+    Random random = new Random(seed);
+    String fileName = "randomInsertUpdateDelete";
+    SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
+
+    int N = 1000;
+    FileInfo fileInfo = getLargeSampleFileInfo(fileName, N);
+    sourceFileHandlerArrayListImpl.loadFile(fileInfo);
+
+    List<String> newContents = new ArrayList<>();
+    newContents.addAll(fileInfo.getLines());
+
+    int K = N;
+    for (int i = 0; i < N; ++i) {
+      int len = newContents.size();
+      int toss= random.nextInt(3);
+      int index = random.nextInt(len);
+      if (toss < 0) {
+        newContents.remove(index);
+      } else if (toss < 1) {
+        newContents.add(index, "Text to be inserted");
+      } else {
+        newContents.set(index, "Something else " + newContents.get(index) + "Something");
+      }
+
+      Cursor cursor = new Cursor(0, 0);
+      EditRequest editRequest = new EditRequest( 0, K, newContents, fileName, cursor);
+      sourceFileHandlerArrayListImpl.editLines(editRequest);
+
+      PageRequest pageRequest = new PageRequest(0, fileName, newContents.size(), new Cursor(0,0));
+      Page page = sourceFileHandlerArrayListImpl.getLinesFrom(pageRequest);
+
+      K = page.getLines().size();
+
+      assertEquals(newContents, page.getLines());
+      assertEquals(0, page.getStartingLineNo());
+      assertEquals(cursor, page.getCursorAt());
+    }
+  }
 
 
 
