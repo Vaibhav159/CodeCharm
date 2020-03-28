@@ -6,7 +6,6 @@ import com.crio.qcharm.request.PageRequest;
 import com.crio.qcharm.request.SearchReplaceRequest;
 import com.crio.qcharm.request.SearchRequest;
 import com.crio.qcharm.request.UndoRequest;
-import java.util.LinkedList;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.LinkedList;
@@ -21,8 +20,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
