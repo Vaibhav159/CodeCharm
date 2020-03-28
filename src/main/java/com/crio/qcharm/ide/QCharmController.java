@@ -20,7 +20,6 @@ import com.crio.qcharm.runner.JavaRunner;
 import com.crio.qcharm.runner.PythonRunner;
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
