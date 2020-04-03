@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class SourceFileVersionLinkedListImpl implements SourceFileVersion {
-  private SourceFileVersionLinkedListImpl obj;
+  //private SourceFileVersionLinkedListImpl obj;
   private LinkedList<String> fileData = new LinkedList<String>(); 
   private String filename;
 
@@ -38,7 +38,8 @@ public class SourceFileVersionLinkedListImpl implements SourceFileVersion {
   }
 
   public SourceFileVersionLinkedListImpl(SourceFileVersionLinkedListImpl obj) {
-    this.obj=obj;
+    this.filename=obj.filename;
+    this.fileData=obj.fileData;
   }
 
 
