@@ -173,7 +173,7 @@ public class SourceFileHandlerArrayListImpl implements SourceFileHandler {
 
   @Override
   public CopyBuffer getCopyBuffer() {
-    return CpyBuf;
+    return this.CpyBuf;
   }
 
   // TODO: CRIO_TASK_MODULE_CUT_COPY_PASTE

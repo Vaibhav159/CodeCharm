@@ -29,7 +29,11 @@ public class SourceFileVersionArrayListImpl implements SourceFileVersion {
   // 1. Use Java ArrayList to store the lines received from fileInfo
 
   public SourceFileVersionArrayListImpl(FileInfo fileInfo) {
-    this.fileData = fileInfo.getLines();
+    List<String> s = new ArrayList<String>();
+    s = fileInfo.getLines();
+    for (int i = 0; i < s.size(); i++) {
+      this.fileData.add(new String(s.get(i)));
+    }
     this.fileName = fileInfo.getFileName();
   }
 
@@ -142,13 +146,9 @@ public class SourceFileVersionArrayListImpl implements SourceFileVersion {
     if (lineNumber - numberOfLines <= 0) {
       num = 0;
     }
-    List<String> middle = new ArrayList<String>();
-    for (int i = num; i < lineNumber; i++) {
-      middle.add(fileData.get(i));
-    }
-    Page before = new Page(middle, num, pageRequest.getFileName(), pageRequest.getCursorAt());
+    Page before = new Page(fileData.subList(num, lineNumber), num, pageRequest.getFileName(),
+        pageRequest.getCursorAt());
     return before;
-
   }
 
   // TODO: CRIO_TASK_MODULE_LOAD_FILE
@@ -177,14 +177,11 @@ public class SourceFileVersionArrayListImpl implements SourceFileVersion {
     if (lineNumber + numberOfLines > fileData.size()) {
       num = fileData.size();
     }
-    List<String> middle = new ArrayList<String>();
-    for (int i = lineNumber; i < num; i++) {
-      middle.add(fileData.get(i));
-    }
     if (lineNumber > fileData.size()) {
       lineNumber--;
     }
-    Page after = new Page(middle, lineNumber, pageRequest.getFileName(), pageRequest.getCursorAt());
+    Page after = new Page(fileData.subList(lineNumber, num), lineNumber, pageRequest.getFileName(),
+        pageRequest.getCursorAt());
     return after;
   }
 
@@ -214,11 +211,8 @@ public class SourceFileVersionArrayListImpl implements SourceFileVersion {
     if (lineNumber + numberOfLines > fileData.size()) {
       num = fileData.size();
     }
-    List<String> middle = new ArrayList<String>();
-    for (int i = lineNumber; i < num; i++) {
-      middle.add(fileData.get(i));
-    }
-    Page from = new Page(middle, lineNumber, pageRequest.getFileName(), new Cursor(lineNumber, 0));
+    Page from = new Page(fileData.subList(lineNumber, num), lineNumber, pageRequest.getFileName(),
+        new Cursor(lineNumber, 0));
     return from;
   }
 
