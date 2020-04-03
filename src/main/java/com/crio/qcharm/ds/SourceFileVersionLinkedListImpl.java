@@ -27,10 +27,8 @@ public class SourceFileVersionLinkedListImpl implements SourceFileVersion {
 
 
   SourceFileVersionLinkedListImpl(FileInfo fileInfo) {
-    List<String> s=new ArrayList<String>();
-    s=fileInfo.getLines();
-    for (int i = 0; i < s.size(); i++) {
-      this.fileData.add(new String(s.get(i)));
+    for (int i = 0; i < fileInfo.getLines().size(); i++) {
+      this.fileData.add(new String(fileInfo.getLines().get(i)));
     }
     this.filename=fileInfo.getFileName();
   }
