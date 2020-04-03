@@ -4,6 +4,7 @@ import com.crio.qcharm.request.PageRequest;
 import com.crio.qcharm.request.SearchRequest;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,9 +28,9 @@ public class SourceFileVersionLinkedListImpl implements SourceFileVersion {
 
 
   SourceFileVersionLinkedListImpl(FileInfo fileInfo) {
-    for (int i = 0; i < fileInfo.getLines().size(); i++) {
-      this.fileData.add(new String(fileInfo.getLines().get(i)));
-    }
+    for (String line : fileInfo.getLines()) {
+      this.fileData.add( new String(line) ); 
+     }
     this.filename=fileInfo.getFileName();
   }
 
@@ -210,11 +211,12 @@ public class SourceFileVersionLinkedListImpl implements SourceFileVersion {
   @Override
   public Page getLinesFrom(PageRequest pageRequest) {
     int lineNumber = pageRequest.getStartingLineNo();
-    int numberOfLines = pageRequest.getNumberOfLines();
-    int num = numberOfLines + lineNumber;
-    if (lineNumber + numberOfLines > fileData.size()) {
-      num = fileData.size();
+    if (lineNumber>this.fileData.size()){
+      return new Page(Collections.<String>emptyList(), lineNumber, pageRequest.getFileName(),
+      new Cursor(lineNumber, 0));
     }
+    int numberOfLines = pageRequest.getNumberOfLines();
+    int num = Math.min(getAllLines().size(), lineNumber + numberOfLines);
     Page from = new Page(fileData.subList(lineNumber, num), lineNumber, pageRequest.getFileName(),
         new Cursor(lineNumber, 0));
     return from;
