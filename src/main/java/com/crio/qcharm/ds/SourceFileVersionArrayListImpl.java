@@ -3,6 +3,7 @@ package com.crio.qcharm.ds;
 import com.crio.qcharm.request.PageRequest;
 import com.crio.qcharm.request.SearchRequest;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,11 +30,9 @@ public class SourceFileVersionArrayListImpl implements SourceFileVersion {
   // 1. Use Java ArrayList to store the lines received from fileInfo
 
   public SourceFileVersionArrayListImpl(FileInfo fileInfo) {
-    List<String> s = new ArrayList<String>();
-    s = fileInfo.getLines();
-    for (int i = 0; i < s.size(); i++) {
-      this.fileData.add(new String(s.get(i)));
-    }
+    for (String line : fileInfo.getLines()) {
+      this.fileData.add( new String(line) ); 
+     }
     this.fileName = fileInfo.getFileName();
   }
 
@@ -127,15 +126,8 @@ public class SourceFileVersionArrayListImpl implements SourceFileVersion {
   public void apply(UpdateLines updateLines) {
     int start = updateLines.getStartingLineNo();
     int end = start + updateLines.getNumberOfLines();
-    List<String> new_content = updateLines.getLines();
-    for (int i = start; i < end; i++) {
-      this.fileData.remove(start);
-    }
-
-    for (int i = 0; i < new_content.size(); i++) {
-      this.fileData.add(start + i, new_content.get(i));
-    }
-
+    this.fileData.subList(start, end).clear();
+    this.fileData.addAll(start, updateLines.getLines());
   }
 
   @Override
@@ -206,11 +198,12 @@ public class SourceFileVersionArrayListImpl implements SourceFileVersion {
   @Override
   public Page getLinesFrom(PageRequest pageRequest) {
     int lineNumber = pageRequest.getStartingLineNo();
-    int numberOfLines = pageRequest.getNumberOfLines();
-    int num = numberOfLines + lineNumber;
-    if (lineNumber + numberOfLines > fileData.size()) {
-      num = fileData.size();
+    if (lineNumber>this.fileData.size()){
+      return new Page(Collections.<String>emptyList(), lineNumber, pageRequest.getFileName(),
+      new Cursor(lineNumber, 0));
     }
+    int numberOfLines = pageRequest.getNumberOfLines();
+    int num = Math.min(getAllLines().size(), lineNumber + numberOfLines);
     Page from = new Page(fileData.subList(lineNumber, num), lineNumber, pageRequest.getFileName(),
         new Cursor(lineNumber, 0));
     return from;

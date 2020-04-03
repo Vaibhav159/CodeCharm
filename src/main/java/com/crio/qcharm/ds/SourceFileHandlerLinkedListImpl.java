@@ -58,15 +58,8 @@ public class SourceFileHandlerLinkedListImpl implements SourceFileHandler {
   public Page loadFile(FileInfo fileInfo) {
     SourceFileVersionLinkedListImpl startFifty=new SourceFileVersionLinkedListImpl(fileInfo);
     this.obj = startFifty;
-    List<String> start = new ArrayList<String>();
-    int max = fileInfo.getLines().size();
-    if (max >= 50) {
-      max = 50;
-    }
-    for (int i = 0; i < max; i++) {
-      start.add(startFifty.getAllLines().get(i));
-    }
-    Page one = new Page(start, 0, fileInfo.getFileName(), new Cursor(0, 0));
+    int min=Math.min(50, fileInfo.getLines().size());
+    Page one = new Page(startFifty.getAllLines().subList(0,min), 0, fileInfo.getFileName(), new Cursor(0, 0));
     return one;
   }
 

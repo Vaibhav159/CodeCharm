@@ -111,14 +111,8 @@ public class SourceFileVersionLinkedListImpl implements SourceFileVersion {
   public void apply(UpdateLines updateLines) {
     int start = updateLines.getStartingLineNo();
     int end = start + updateLines.getNumberOfLines();
-    List<String> new_content = updateLines.getLines();
-    for (int i = start; i < end; i++) {
-      this.fileData.remove(start);
-    }
-
-    for (int i = 0; i < new_content.size(); i++) {
-      this.fileData.add(start + i, new_content.get(i));
-    }
+    this.fileData.subList(start, end).clear();
+    this.fileData.addAll(start, updateLines.getLines());
   }
 
   @Override
