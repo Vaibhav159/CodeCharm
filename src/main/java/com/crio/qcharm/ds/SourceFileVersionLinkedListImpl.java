@@ -229,9 +229,6 @@ public class SourceFileVersionLinkedListImpl implements SourceFileVersion {
     List<Cursor> search = new ArrayList<Cursor>();
     int start = searchRequest.getStartingLineNo();
     String pat = searchRequest.getPattern();
-    if (pat.isEmpty()) {
-      return new LinkedList<Cursor>();
-    }
     int M = pat.length();
     int lps[] = new int[M];
     LPS_Array(pat, M, lps);
