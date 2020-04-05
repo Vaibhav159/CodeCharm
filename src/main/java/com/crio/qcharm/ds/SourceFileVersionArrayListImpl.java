@@ -26,7 +26,7 @@ public class SourceFileVersionArrayListImpl implements SourceFileVersion {
   // 1. Use Java ArrayList to store the lines received from fileInfo
 
   public SourceFileVersionArrayListImpl(FileInfo fileInfo) {
-    this.fileData=fileInfo.getLines().stream().collect(Collectors.toList());
+    this.fileData = fileInfo.getLines().stream().collect(Collectors.toList());
     this.fileName = fileInfo.getFileName();
   }
 

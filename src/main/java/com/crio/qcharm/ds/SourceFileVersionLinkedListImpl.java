@@ -3,7 +3,6 @@ package com.crio.qcharm.ds;
 import com.crio.qcharm.request.PageRequest;
 import com.crio.qcharm.request.SearchRequest;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -226,60 +225,63 @@ public class SourceFileVersionLinkedListImpl implements SourceFileVersion {
 
   @Override
   public List<Cursor> getCursors(SearchRequest searchRequest) {
-    List<Cursor> search = new ArrayList<Cursor>();
-    int start = searchRequest.getStartingLineNo();
-    String pat = searchRequest.getPattern();
-    int M = pat.length();
-    int lps[] = new int[M];
-    LPS_Array(pat, M, lps);
-    for (int k = start; k < fileData.size(); k++) {
-      String txt = fileData.get(k);
-      KMP_search(pat, txt, search, lps, k, M);
-    }
-    return search;
-  }
-
-  void KMP_search(String pat, String txt, List<Cursor> search, int lps[], int k, int M) {
-    int N = txt.length();
-    int i = 0;
-    int j = 0;
-
-    while (i < N) {
-      if (pat.charAt(j) == txt.charAt(i)) {
-        i++;
-        j++;
+    try {
+      String pattern = searchRequest.getPattern();
+      if (pattern.isEmpty()) {
+        return new LinkedList<Cursor>();
       }
-      if (j == M) {
-        search.add(new Cursor(k, i - j));
-        j = lps[j - 1];
-      } else if (i < N && pat.charAt(j) != txt.charAt(i)) {
-        if (j != 0) {
-          j = lps[j - 1];
-        } else {
-          i++;
+      List<Cursor> searchResults = new LinkedList<Cursor>();
+      int sizeOfPattern = pattern.length();
+      int longestProperSuffix[] = new int[sizeOfPattern];
+      computeLongestProperSuffix(pattern, sizeOfPattern, longestProperSuffix);
+      for (int i = 0; i < this.fileData.size(); i++) {
+        String line = this.fileData.get(i);
+        int indexOfPat = 0, indexOfStr = 0;
+        while (indexOfStr < line.length()) {
+          if (line.charAt(indexOfStr) == pattern.charAt(indexOfPat)) {
+            indexOfStr++;
+            indexOfPat++;
+          }
+          if (indexOfPat == sizeOfPattern) {
+            Cursor cursor = new Cursor(i, indexOfStr - indexOfPat);
+            searchResults.add(cursor);
+            indexOfPat = longestProperSuffix[indexOfPat - 1];
+          } else if (pattern.charAt(indexOfPat) != line.charAt(indexOfStr)) {
+            if (indexOfPat != 0) {
+              indexOfPat = longestProperSuffix[indexOfPat - 1];
+            } else {
+              indexOfStr++;
+            }
+          }
         }
       }
+      return searchResults;
+    } catch (Exception e) {
+      e.printStackTrace();
     }
+    return null;
   }
 
-  void LPS_Array(String pat, int M, int lps[]) {
-    int len = 0;
-    int i = 1;
-    lps[0] = 0;
-
-    while (i < M) {
-      if (pat.charAt(i) == pat.charAt(len)) {
-        len++;
-        lps[i] = len;
-        i++;
-      } else {
-        if (len != 0) {
-          len = lps[len - 1];
-        } else {
-          lps[i] = len;
+  void computeLongestProperSuffix(String pattern, int sizeOfPattern, int[] longestProperSuffix) {
+    try {
+      longestProperSuffix[0] = 0;
+      int i = 1, length = 0;
+      while (i < sizeOfPattern) {
+        if (pattern.charAt(i) == pattern.charAt(length)) {
+          length++;
+          longestProperSuffix[i] = length;
           i++;
+        } else {
+          if (length > 0) {
+            length = longestProperSuffix[length - 1];
+          } else {
+            longestProperSuffix[i] = length;
+            i++;
+          }
         }
       }
+    } catch (Exception e) {
+      e.printStackTrace();
     }
   }
 
