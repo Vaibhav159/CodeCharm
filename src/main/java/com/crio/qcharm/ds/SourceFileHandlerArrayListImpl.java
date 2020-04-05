@@ -53,8 +53,8 @@ public class SourceFileHandlerArrayListImpl implements SourceFileHandler {
   public Page loadFile(FileInfo fileInfo) {
     SourceFileVersionArrayListImpl startFifty = new SourceFileVersionArrayListImpl(fileInfo);
     this.obj = startFifty;
-    int min=Math.min(50, fileInfo.getLines().size());
-    Page one = new Page(startFifty.getAllLines().subList(0,min), 0, fileInfo.getFileName(), new Cursor(0, 0));
+    int min = Math.min(50, fileInfo.getLines().size());
+    Page one = new Page(startFifty.getAllLines().subList(0, min), 0, fileInfo.getFileName(), new Cursor(0, 0));
     return one;
   }
 

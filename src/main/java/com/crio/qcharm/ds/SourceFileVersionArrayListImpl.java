@@ -3,18 +3,14 @@ package com.crio.qcharm.ds;
 import com.crio.qcharm.request.PageRequest;
 import com.crio.qcharm.request.SearchRequest;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class SourceFileVersionArrayListImpl implements SourceFileVersion {
-
-  private SourceFileVersionArrayListImpl object;
   private List<String> fileData = new ArrayList<String>();
   private String fileName;
 
   public SourceFileVersionArrayListImpl(SourceFileVersionArrayListImpl obj) {
-    this.object = obj;
   }
 
   // TODO: CRIO_TASK_MODULE_LOAD_FILE
@@ -30,9 +26,7 @@ public class SourceFileVersionArrayListImpl implements SourceFileVersion {
   // 1. Use Java ArrayList to store the lines received from fileInfo
 
   public SourceFileVersionArrayListImpl(FileInfo fileInfo) {
-    for (String line : fileInfo.getLines()) {
-      this.fileData.add( new String(line) ); 
-     }
+    this.fileData=fileInfo.getLines().stream().collect(Collectors.toList());
     this.fileName = fileInfo.getFileName();
   }
 
@@ -133,14 +127,15 @@ public class SourceFileVersionArrayListImpl implements SourceFileVersion {
   @Override
   public Page getLinesBefore(PageRequest pageRequest) {
     int lineNumber = pageRequest.getStartingLineNo();
-    int numberOfLines = pageRequest.getNumberOfLines();
-    int num = numberOfLines;
-    if (lineNumber - numberOfLines <= 0) {
-      num = 0;
+    if (lineNumber == 0) {
+      return new Page(new ArrayList<String>(), 0, pageRequest.getFileName(), pageRequest.getCursorAt());
     }
-    Page before = new Page(fileData.subList(num, lineNumber), num, pageRequest.getFileName(),
-        pageRequest.getCursorAt());
-    return before;
+    int numberOfLines = pageRequest.getNumberOfLines();
+    if (lineNumber - numberOfLines < 0) {
+      return new Page(this.fileData.subList(0, lineNumber), 0, pageRequest.getFileName(), pageRequest.getCursorAt());
+    }
+    return new Page(fileData.subList(lineNumber - numberOfLines, lineNumber), lineNumber - numberOfLines,
+        pageRequest.getFileName(), pageRequest.getCursorAt());
   }
 
   // TODO: CRIO_TASK_MODULE_LOAD_FILE
@@ -163,18 +158,17 @@ public class SourceFileVersionArrayListImpl implements SourceFileVersion {
 
   @Override
   public Page getLinesAfter(PageRequest pageRequest) {
-    int lineNumber = pageRequest.getStartingLineNo() + 1;
+    int lineNumber = pageRequest.getStartingLineNo();
+    if (lineNumber >= this.fileData.size()) {
+      return new Page(new ArrayList<String>(), lineNumber, pageRequest.getFileName(), pageRequest.getCursorAt());
+    }
     int numberOfLines = pageRequest.getNumberOfLines();
-    int num = numberOfLines + lineNumber;
-    if (lineNumber + numberOfLines > fileData.size()) {
-      num = fileData.size();
+    if (lineNumber + numberOfLines + 1 > fileData.size()) {
+      return new Page(this.fileData.subList(lineNumber + 1, this.fileData.size()), lineNumber + 1,
+          pageRequest.getFileName(), pageRequest.getCursorAt());
     }
-    if (lineNumber > fileData.size()) {
-      lineNumber--;
-    }
-    Page after = new Page(fileData.subList(lineNumber, num), lineNumber, pageRequest.getFileName(),
-        pageRequest.getCursorAt());
-    return after;
+    return new Page(fileData.subList(lineNumber + 1, Math.min(lineNumber + numberOfLines + 1, this.fileData.size())),
+        lineNumber + 1, pageRequest.getFileName(), pageRequest.getCursorAt());
   }
 
   // TODO: CRIO_TASK_MODULE_LOAD_FILE
@@ -198,15 +192,13 @@ public class SourceFileVersionArrayListImpl implements SourceFileVersion {
   @Override
   public Page getLinesFrom(PageRequest pageRequest) {
     int lineNumber = pageRequest.getStartingLineNo();
-    if (lineNumber>this.fileData.size()){
-      return new Page(Collections.<String>emptyList(), lineNumber, pageRequest.getFileName(),
-      new Cursor(lineNumber, 0));
+    if (lineNumber >= this.fileData.size()) {
+      return new Page(new ArrayList<String>(), lineNumber, pageRequest.getFileName(), new Cursor(lineNumber, 0));
     }
     int numberOfLines = pageRequest.getNumberOfLines();
     int num = Math.min(getAllLines().size(), lineNumber + numberOfLines);
-    Page from = new Page(fileData.subList(lineNumber, num), lineNumber, pageRequest.getFileName(),
+    return new Page(fileData.subList(lineNumber, num), lineNumber, pageRequest.getFileName(),
         new Cursor(lineNumber, 0));
-    return from;
   }
 
   @Override
@@ -251,6 +243,9 @@ public class SourceFileVersionArrayListImpl implements SourceFileVersion {
     List<Cursor> search = new ArrayList<Cursor>();
     int start = searchRequest.getStartingLineNo();
     String pat = searchRequest.getPattern();
+    if (pat.isEmpty()) {
+      return new ArrayList<Cursor>();
+    }
     int M = pat.length();
     int lps[] = new int[M];
     LPS_Array(pat, M, lps);
