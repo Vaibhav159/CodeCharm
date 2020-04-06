@@ -237,4 +237,21 @@ public class SourceFileHandlerArrayListImpl implements SourceFileHandler {
     this.obj.apply(e);
   }
 
+  // TODO: CRIO_TASK_MODULE_SEARCH_REPLACE
+  // Input:
+  // SearchReplaceRequest
+  // 1. pattern - pattern to be found
+  // 2. newPattern - pattern to be replaced with
+  // 3. fileName
+  // Description:
+  // using the SourceFileVersionArrayListImpl object find every occurrence of
+  // pattern
+  // and replace it with the given newPattern
+
+  @Override
+  public void searchReplace(SearchReplaceRequest searchReplaceRequest) {
+    this.obj.apply(new SearchReplace(0, searchReplaceRequest.getNewPattern().length(), new Cursor(0, 0),
+        searchReplaceRequest.getPattern(), searchReplaceRequest.getNewPattern()));
+  }
+
 }

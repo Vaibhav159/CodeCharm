@@ -20,7 +20,6 @@ import com.crio.qcharm.runner.JavaRunner;
 import com.crio.qcharm.runner.PythonRunner;
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
@@ -139,6 +138,17 @@ public class QCharmController {
     return new ResponseEntity<>(page, HttpStatus.OK);
   }
 
+  @PostMapping("/search_replace_new")
+  @ResponseBody
+  public Object searchReplaceNew(@RequestBody MasterRequest masterRequest) {
+    final SearchReplaceRequest searchReplaceRequest = masterRequest.getSearchReplaceRequest();
+    sourceFileHandler.editLines(masterRequest.getEditRequest());
+    sourceFileHandler.searchReplace(searchReplaceRequest);
+    final PageRequest pageRequestAfterReplace = masterRequest.getPageRequestPostEdit();
+    final Page linesAfterReplace = sourceFileHandler.getLinesFrom(pageRequestAfterReplace);
+
+    return new ResponseEntity<>(linesAfterReplace, HttpStatus.OK);
+  }
 
 
 

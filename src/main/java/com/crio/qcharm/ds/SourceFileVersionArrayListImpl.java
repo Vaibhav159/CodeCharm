@@ -2,6 +2,9 @@ package com.crio.qcharm.ds;
 
 import com.crio.qcharm.request.PageRequest;
 import com.crio.qcharm.request.SearchRequest;
+
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -69,8 +72,24 @@ public class SourceFileVersionArrayListImpl implements SourceFileVersion {
     return this;
   }
 
+  // TODO: CRIO_TASK_MODULE_SEARCH_REPLACE
+  // Input:
+  // SearchReplace
+  // 1. pattern - pattern to be found
+  // 2. newPattern - pattern to be replaced with
+  // Description:
+  // Find every occurrence of the pattern and replace it newPattern.
+
   @Override
   public void apply(SearchReplace searchReplace) {
+    String pattern = searchReplace.getPattern();
+    String new_pattern = searchReplace.getNewPattern();
+    List<Cursor> cursors = getCursors(new SearchRequest(0, pattern, this.fileName));
+    int num;
+    for (Cursor cursor : cursors) {
+      num = cursor.getLineNo();
+      this.fileData.set(num, StringUtils.replace(this.fileData.get(num), pattern, new_pattern));
+    }
   }
 
   // TODO: CRIO_TASK_MODULE_CUT_COPY_PASTE
