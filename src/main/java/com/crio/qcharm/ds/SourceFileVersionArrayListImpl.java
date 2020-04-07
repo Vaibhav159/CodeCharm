@@ -85,8 +85,11 @@ public class SourceFileVersionArrayListImpl implements SourceFileVersion {
     String pattern = searchReplace.getPattern();
     String new_pattern = searchReplace.getNewPattern();
     List<Cursor> cursors = getCursors(new SearchRequest(0, pattern, this.fileName));
-    int num;
+    int num = -1;
     for (Cursor cursor : cursors) {
+      if (num == cursor.getLineNo()) {
+        continue;
+      }
       num = cursor.getLineNo();
       this.fileData.set(num, StringUtils.replace(this.fileData.get(num), pattern, new_pattern));
     }

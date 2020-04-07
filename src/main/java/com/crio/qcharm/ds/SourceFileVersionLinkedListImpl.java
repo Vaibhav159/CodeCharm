@@ -54,22 +54,24 @@ public class SourceFileVersionLinkedListImpl implements SourceFileVersion {
     return this;
   }
 
-
   // TODO: CRIO_TASK_MODULE_SEARCH_REPLACE
   // Input:
-  //    SearchReplace
-  //          1. pattern - pattern to be found
-  //          2. newPattern - pattern to be replaced with
-  //  Description:
-  //      Find every occurrence of the pattern and replace it newPattern.
+  // SearchReplace
+  // 1. pattern - pattern to be found
+  // 2. newPattern - pattern to be replaced with
+  // Description:
+  // Find every occurrence of the pattern and replace it newPattern.
 
   @Override
   public void apply(SearchReplace searchReplace) {
     String pattern = searchReplace.getPattern();
     String new_pattern = searchReplace.getNewPattern();
     List<Cursor> cursors = getCursors(new SearchRequest(0, pattern, this.filename));
-    int num;
+    int num = -1;
     for (Cursor cursor : cursors) {
+      if (num == cursor.getLineNo()) {
+        continue;
+      }
       num = cursor.getLineNo();
       this.fileData.set(num, StringUtils.replace(this.fileData.get(num), pattern, new_pattern));
     }

@@ -250,8 +250,8 @@ public class SourceFileHandlerArrayListImpl implements SourceFileHandler {
 
   @Override
   public void searchReplace(SearchReplaceRequest searchReplaceRequest) {
-    this.obj.apply(new SearchReplace(0, searchReplaceRequest.getNewPattern().length(), new Cursor(0, 0),
-        searchReplaceRequest.getPattern(), searchReplaceRequest.getNewPattern()));
+    this.obj.apply(new SearchReplace(searchReplaceRequest.getStartingLineNo(), searchReplaceRequest.getLength(),
+        new Cursor(0, 0), searchReplaceRequest.getPattern(), searchReplaceRequest.getNewPattern()));
   }
 
 }
