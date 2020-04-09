@@ -268,7 +268,7 @@ public class SourceFileHandlerArrayListImpl implements SourceFileHandler {
   @Override
   public void undo(UndoRequest undoRequest) {
     if (!this.StackUndo.isEmpty()) {
-      this.StackRedo.push(this.obj);
+      StackRedo.push(this.obj);
       this.obj = this.StackUndo.pop();
     }
   }
@@ -284,7 +284,7 @@ public class SourceFileHandlerArrayListImpl implements SourceFileHandler {
   @Override
   public void redo(UndoRequest undoRequest) {
     if (!this.StackUndo.isEmpty()) {
-      this.StackUndo.push(this.obj);
+      StackUndo.push(this.obj);
       this.obj = this.StackRedo.pop();
     }
   }
