@@ -271,7 +271,7 @@ public class SourceFileHandlerLinkedListImpl implements SourceFileHandler {
   @Override
   public void undo(UndoRequest undoRequest) {
     if (!this.StackUndo.isEmpty()) {
-      StackRedo.push(this.obj);
+      this.StackRedo.push(this.obj);
       this.obj = this.StackUndo.pop();
     }
   }
@@ -287,7 +287,7 @@ public class SourceFileHandlerLinkedListImpl implements SourceFileHandler {
   @Override
   public void redo(UndoRequest undoRequest) {
     if (!this.StackUndo.isEmpty()) {
-      StackUndo.push(this.obj);
+      this.StackUndo.push(this.obj);
       this.obj = this.StackRedo.pop();
     }
   }
