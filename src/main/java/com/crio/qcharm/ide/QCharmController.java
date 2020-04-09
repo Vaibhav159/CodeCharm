@@ -151,6 +151,32 @@ public class QCharmController {
   }
 
 
+  //FIXME: NOT COMPLETE
+  @PostMapping("/undo_new")
+  @ResponseBody
+  public Object undo(@RequestBody MasterRequest masterRequest) {
+    System.out.println("Called Undo");
+
+    sourceFileHandler.editLines(masterRequest.getEditRequest());
+    sourceFileHandler.undo(masterRequest.getUndoRequest());
+    Page page = sourceFileHandler.getCursorPage();
+
+    return new ResponseEntity<>(page, HttpStatus.OK);
+  }
+
+  //FIXME: NOT COMPLETE
+  @PostMapping("/redo_new")
+  @ResponseBody
+  public Object redo(@RequestBody MasterRequest masterRequest) {
+    System.out.println("Called Redo");
+
+    sourceFileHandler.editLines(masterRequest.getEditRequest());
+    sourceFileHandler.redo(masterRequest.getUndoRequest());
+    Page page = sourceFileHandler.getCursorPage();
+
+    return new ResponseEntity<>(page, HttpStatus.OK);
+  }
+
 
   @PostMapping("/run_file")
   @ResponseBody

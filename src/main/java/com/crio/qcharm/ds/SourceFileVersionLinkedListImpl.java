@@ -34,6 +34,8 @@ public class SourceFileVersionLinkedListImpl implements SourceFileVersion {
   }
 
   public SourceFileVersionLinkedListImpl(SourceFileVersionLinkedListImpl obj) {
+    this.filename = obj.filename;
+    this.fileData = obj.getAllLines().stream().collect(Collectors.toCollection(LinkedList::new));
   }
 
   @Override
@@ -304,6 +306,11 @@ public class SourceFileVersionLinkedListImpl implements SourceFileVersion {
     } catch (Exception e) {
       e.printStackTrace();
     }
+  }
+
+  @Override
+  public Page getCursorPage() {
+    return null;
   }
 
 }

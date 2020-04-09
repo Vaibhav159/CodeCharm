@@ -34,4 +34,10 @@ public interface SourceFileHandler {
   void searchReplace(SearchReplaceRequest searchReplaceRequest);
 
 
+  void undo(UndoRequest undoRequest);
+
+  void redo(UndoRequest undoRequest);
+
+  Page getCursorPage();
+
 }

@@ -14,6 +14,8 @@ public class SourceFileVersionArrayListImpl implements SourceFileVersion {
   private String fileName;
 
   public SourceFileVersionArrayListImpl(SourceFileVersionArrayListImpl obj) {
+    this.fileName = obj.fileName;
+    this.fileData = obj.getAllLines().stream().collect(Collectors.toList());
   }
 
   // TODO: CRIO_TASK_MODULE_LOAD_FILE
@@ -223,11 +225,6 @@ public class SourceFileVersionArrayListImpl implements SourceFileVersion {
         new Cursor(lineNumber, 0));
   }
 
-  @Override
-  public List<String> getAllLines() {
-    return this.fileData;
-  }
-
   // TODO: CRIO_TASK_MODULE_SEARCH
   // Input:
   // SearchRequest - contains following information
@@ -323,4 +320,14 @@ public class SourceFileVersionArrayListImpl implements SourceFileVersion {
     }
   }
 
+  @Override
+  public Page getCursorPage() {
+    return null;
+  }
+
+  @Override
+  public List<String> getAllLines() {
+    return this.fileData;
+
+  }
 }

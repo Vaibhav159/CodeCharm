@@ -16,6 +16,8 @@ import java.util.stream.Collectors;
 public class SourceFileHandlerLinkedListImpl implements SourceFileHandler {
   private SourceFileVersionLinkedListImpl obj;
   private CopyBuffer CpyBuf;
+  Stack<SourceFileVersionLinkedListImpl> StackUndo = new Stack<>();
+  Stack<SourceFileVersionLinkedListImpl> StackRedo = new Stack<>();
 
   public SourceFileHandlerLinkedListImpl(String fileName) {
   }
@@ -231,6 +233,7 @@ public class SourceFileHandlerLinkedListImpl implements SourceFileHandler {
 
   @Override
   public void editLines(EditRequest editRequest) {
+    this.StackUndo.push(new SourceFileVersionLinkedListImpl(this.obj));
     UpdateLines u = new UpdateLines(editRequest.getStartingLineNo(),
         editRequest.getEndingLineNo() - editRequest.getStartingLineNo(), editRequest.getNewContent(),
         editRequest.getCursorAt());
@@ -252,8 +255,54 @@ public class SourceFileHandlerLinkedListImpl implements SourceFileHandler {
 
   @Override
   public void searchReplace(SearchReplaceRequest searchReplaceRequest) {
+    this.StackUndo.push(new SourceFileVersionLinkedListImpl(this.obj));
     this.obj.apply(new SearchReplace(searchReplaceRequest.getStartingLineNo(), searchReplaceRequest.getLength(),
         new Cursor(0, 0), searchReplaceRequest.getPattern(), searchReplaceRequest.getNewPattern()));
+  }
+
+  // TODO: CRIO_TASK_MODULE_UNDO_REDO
+  // Input:
+  // UndoRequest
+  // 1. fileName
+  // Description:
+  // 1. For the given file go back by one edit.
+  // 2. If the file is already at its oldest change do nothing
+
+  @Override
+  public void undo(UndoRequest undoRequest) {
+    if (!this.StackUndo.isEmpty()) {
+      StackRedo.push(this.obj);
+      this.obj = this.StackUndo.pop();
+    }
+  }
+
+  // TODO: CRIO_TASK_MODULE_UNDO_REDO
+  // Input:
+  // UndoRequest
+  // 1. fileName
+  // Description:
+  // 1. Re apply the last undone change. Basically reverse the last last undo.
+  // 2. If there was no undo done earlier do nothing.
+
+  @Override
+  public void redo(UndoRequest undoRequest) {
+    if (!this.StackUndo.isEmpty()) {
+      StackUndo.push(this.obj);
+      this.obj = this.StackRedo.pop();
+    }
+  }
+
+  // TODO: CRIO_TASK_MODULE_UNDO_REDO
+  // Input:
+  // None
+  // Description:
+  // Return the page that was in view as of this edit.
+  // 1. starting line number -should be same as it was in the last change
+  // 2. Cursor - should return to the same position as it was in the last change
+  // 3. Number of lines - should be same as it was in the last change.
+
+  public Page getCursorPage() {
+    return null;
   }
 
 }

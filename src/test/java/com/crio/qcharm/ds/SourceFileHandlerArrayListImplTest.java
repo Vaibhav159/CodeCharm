@@ -651,4 +651,389 @@ class SourceFileHandlerArrayListImplTest {
 
 
 
+  @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
+  void undoSearchReplace() {
+    String fileName = "testfile";
+    SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
+
+    int N = 100;
+    FileInfo fileInfo = getLargeSampleFileInfo(fileName, N);
+    sourceFileHandlerArrayListImpl.loadFile(fileInfo);
+
+    SearchReplaceRequest searchReplaceRequest = new SearchReplaceRequest(0, 0, "lineno",
+        "LineNumber", fileName);
+
+    sourceFileHandlerArrayListImpl.searchReplace(searchReplaceRequest);
+
+    List<String> expected = new ArrayList<>();
+    for (int i = 0; i < N; ++i) {
+      StringBuffer buffer = new StringBuffer("LineNumber");
+      buffer.append(i);
+      expected.add(buffer.toString());
+    }
+
+    PageRequest pageRequest = new PageRequest(0, fileName, 100, new Cursor(0,0));
+    Page page = sourceFileHandlerArrayListImpl.getLinesFrom(pageRequest);
+
+    assertEquals(expected, page.getLines());
+
+    UndoRequest undoRequest = new UndoRequest(fileName);
+    sourceFileHandlerArrayListImpl.undo(undoRequest);
+
+    Page pageAfterUndo = sourceFileHandlerArrayListImpl.getLinesFrom(pageRequest);
+
+    assertEquals(fileInfo.getLines(), pageAfterUndo.getLines());
+  }
+
+  @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
+  void undoEditLines() {
+    String fileName = "testfile";
+    SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
+
+    int N = 100;
+    FileInfo fileInfo = getLargeSampleFileInfo(fileName, N);
+    sourceFileHandlerArrayListImpl.loadFile(fileInfo);
+
+    List<String> changedLines = new ArrayList<>();
+    for (int i = 0; i < 35; ++i) {
+      StringBuffer buffer = new StringBuffer("LineNumber");
+      buffer.append(i);
+      changedLines.add(buffer.toString());
+    }
+
+    EditRequest editRequest = new EditRequest(35, 70, changedLines, fileName, new Cursor(0,0));
+    sourceFileHandlerArrayListImpl.editLines(editRequest);
+
+    PageRequest pageRequest = new PageRequest(0, fileName, N, new Cursor(0,0));
+    Page page = sourceFileHandlerArrayListImpl.getLinesFrom(pageRequest);
+
+    assertEquals(fileInfo.getLines().subList(0, 35), page.getLines().subList(0,35));
+    assertEquals(changedLines, page.getLines().subList(35, 70));
+    assertEquals(fileInfo.getLines().subList(70, N), page.getLines().subList(70,N));
+
+    UndoRequest undoRequest = new UndoRequest(fileName);
+    sourceFileHandlerArrayListImpl.undo(undoRequest);
+    Page pageAfterUndo = sourceFileHandlerArrayListImpl.getLinesFrom(pageRequest);
+
+    assertEquals(fileInfo.getLines(), pageAfterUndo.getLines());
+  }
+
+  @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
+  void onUndoTheCursorShouldBeReturnedToRightPosition() {
+    String fileName = "randomInsertUpdateDelete";
+    SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
+    int N = 200;
+    FileInfo fileInfo = getLargeSampleFileInfo(fileName, N);
+    sourceFileHandlerArrayListImpl.loadFile(fileInfo);
+
+    final Cursor cursor = new Cursor(100, 5);
+    List<String> content = new ArrayList<>();
+    content.add("LINENUMBER100");
+    final EditRequest editRequest = new EditRequest(100, 101, content, fileName, cursor);
+    sourceFileHandlerArrayListImpl.editLines(editRequest);
+
+    final SearchReplaceRequest searchReplaceRequest = new SearchReplaceRequest(0, 100, "LINENUMBER",
+        "lineno", fileName);
+
+    final PageRequest pageRequest = new PageRequest(0, fileName, 200, cursor);
+    Page pageAfterUpdate = sourceFileHandlerArrayListImpl.getLinesFrom(pageRequest);
+
+    assertEquals(content, pageAfterUpdate.getLines().subList(100, 101));
+    assertEquals(fileInfo.getLines().subList(0, 100), pageAfterUpdate.getLines().subList(0, 100));
+
+    sourceFileHandlerArrayListImpl.searchReplace(searchReplaceRequest);
+    Page pageAfterSearchReplace = sourceFileHandlerArrayListImpl.getLinesFrom(pageRequest);
+    assertEquals(fileInfo.getLines(), pageAfterSearchReplace.getLines());
+    final UndoRequest undoRequest = new UndoRequest(fileName);
+    sourceFileHandlerArrayListImpl.undo(undoRequest);
+    Page pageAfterFirstUndo = sourceFileHandlerArrayListImpl.getLinesFrom(pageRequest);
+
+    assertEquals(content, pageAfterFirstUndo.getLines().subList(100, 101));
+    assertEquals(fileInfo.getLines().subList(0, 100), pageAfterFirstUndo.getLines().subList(0, 100));
+
+    sourceFileHandlerArrayListImpl.undo(undoRequest);
+    Page pageAfterSecondUndo = sourceFileHandlerArrayListImpl.getLinesFrom(pageRequest);
+
+    assertEquals(new Cursor(0, 0), pageAfterSecondUndo.getCursorAt());
+    assertEquals(fileInfo.getLines(), pageAfterSecondUndo.getLines());
+  }
+
+//  List<String> searchReplaceString(List<String> lst, String pattern, String newPattern) {
+//
+//  }
+@Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
+void sameContentUpdateDoesNotIncrementVersionTest1() {
+  int seed = 0x1231;
+  Random random = new Random(seed);
+  String fileName = "randomInsertUpdateDelete";
+  SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
+
+  int N = 100;
+  FileInfo fileInfo = getLargeSampleFileInfo(fileName, N);
+  sourceFileHandlerArrayListImpl.loadFile(fileInfo);
+
+  final Cursor cursor = new Cursor(0, 0);
+  final EditRequest editRequest = new EditRequest(0, 10, clone(fileInfo.getLines().subList(0, 10)),
+      fileName, cursor);
+
+  sourceFileHandlerArrayListImpl.editLines(editRequest);
+  final PageRequest pageRequest = new PageRequest(0, fileName, 100, cursor);
+  final Page page = sourceFileHandlerArrayListImpl.getLinesFrom(pageRequest);
+
+  assertEquals(fileInfo.getLines(), page.getLines());
+  assertEquals(0, page.getStartingLineNo());
+  assertEquals(cursor, page.getCursorAt());
+
+  final UndoRequest undoRequest = new UndoRequest(fileName);
+  sourceFileHandlerArrayListImpl.undo(undoRequest);
+
+  Page pageAfterUndo = sourceFileHandlerArrayListImpl.getLinesFrom(pageRequest);
+
+  assertEquals(fileInfo.getLines(), pageAfterUndo.getLines());
+  assertEquals(0, pageAfterUndo.getStartingLineNo());
+  assertEquals(cursor, pageAfterUndo.getCursorAt());
+}
+
+  @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
+  void sameContentUpdateDoesNotIncrementVersionTest2() {
+    int seed = 0x1231;
+    Random random = new Random(seed);
+    String fileName = "randomInsertUpdateDelete";
+    SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
+
+    int N = 100;
+    FileInfo fileInfo = getLargeSampleFileInfo(fileName, N);
+    sourceFileHandlerArrayListImpl.loadFile(fileInfo);
+
+    final Cursor cursor = new Cursor(0, 0);
+    final SearchReplaceRequest searchReplaceRequest = new SearchReplaceRequest(0, 100, "lineno",
+        "lineno", fileName);
+    sourceFileHandlerArrayListImpl.searchReplace(searchReplaceRequest);
+    final PageRequest pageRequest = new PageRequest(0, fileName, 100, cursor);
+    final Page page = sourceFileHandlerArrayListImpl.getLinesFrom(pageRequest);
+
+    assertEquals(fileInfo.getLines(), page.getLines());
+    assertEquals(0, page.getStartingLineNo());
+    assertEquals(cursor, page.getCursorAt());
+
+    final UndoRequest undoRequest = new UndoRequest(fileName);
+    sourceFileHandlerArrayListImpl.undo(undoRequest);
+
+    Page pageAfterUndo = sourceFileHandlerArrayListImpl.getLinesFrom(pageRequest);
+
+    assertEquals(fileInfo.getLines(), pageAfterUndo.getLines());
+    assertEquals(0, pageAfterUndo.getStartingLineNo());
+    assertEquals(cursor, pageAfterUndo.getCursorAt());
+  }
+
+  @Test
+  @Timeout(value = 20000, unit = TimeUnit.MILLISECONDS)
+  void randomUndoRedoTest() {
+    int seed = 0x1231;
+    Random random = new Random(seed);
+    String fileName = "randomInsertUpdateDelete";
+    SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
+
+    int N = 1000;
+    FileInfo fileInfo = getLargeSampleFileInfo(fileName, N);
+    sourceFileHandlerArrayListImpl.loadFile(fileInfo);
+
+    List<String> newContents = new ArrayList<>();
+    newContents.addAll(fileInfo.getLines());
+
+    List<List<String>> fileVersions = new ArrayList<>();
+    List<Integer> sizes = new ArrayList<>();
+    int K = N;
+    fileVersions.add(clone(newContents));
+    sizes.add(K);
+
+    for (int i = 0; i < N; ++i) {
+      int len = newContents.size();
+      int toss= random.nextInt(3) % 3;
+      int index = random.nextInt(len);
+      if (toss == 0) {
+        newContents.remove(index);
+      } else if (toss == 1) {
+        newContents.add(index, "Text to be inserted");
+      } else {
+        newContents.set(index, "pre " + newContents.get(index) + " post");
+      }
+
+      List<String> clonedList = clone(newContents);
+      fileVersions.add(clonedList);
+
+      Cursor cursor = new Cursor(0, 0);
+      EditRequest editRequest = new EditRequest( 0, K, clone(newContents), fileName, cursor);
+      sourceFileHandlerArrayListImpl.editLines(editRequest);
+
+      PageRequest pageRequest = new PageRequest(0, fileName, newContents.size(), new Cursor(0,0));
+      Page page = sourceFileHandlerArrayListImpl.getLinesFrom(pageRequest);
+      K = page.getLines().size();
+      sizes.add(newContents.size());
+    }
+
+    Deque<Integer> dq = new LinkedList<>();
+    final UndoRequest undoRequest = new UndoRequest(fileName);
+    Cursor cursor = new Cursor(0, 0);
+
+    int undoIndex = fileVersions.size() - 2;
+    for (int i = 0; i < N; ++i) {
+      List<String> thisVersion = fileVersions.get(Math.max(0, undoIndex));
+      Integer sz = sizes.get(Math.max(0, undoIndex));
+
+      int toss = random.nextInt(2) % 2;
+      if (toss == 0) {
+        sourceFileHandlerArrayListImpl.undo(undoRequest);
+        dq.addLast(undoIndex);
+        --undoIndex;
+      } else {
+        if (dq.size() > 0) {
+          sourceFileHandlerArrayListImpl.redo(undoRequest);
+          undoIndex = dq.getLast();
+          dq.removeLast();
+        }
+        int idx = Math.min(undoIndex + 1, fileVersions.size()-1);
+        thisVersion = fileVersions.get(idx);
+        sz = sizes.get(idx);
+      }
+
+      PageRequest pageRequest = new PageRequest(0, fileName, sz, cursor);
+      Page page = sourceFileHandlerArrayListImpl.getLinesFrom(pageRequest);
+      assertEquals(thisVersion, page.getLines());
+    }
+  }
+
+  @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
+  void nothingToUndoReturnsLoadedContentTest() {
+    int seed = 0x1231;
+    Random random = new Random(seed);
+    String fileName = "randomInsertUpdateDelete";
+    SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
+
+    int N = 100;
+    FileInfo fileInfo = getLargeSampleFileInfo(fileName, N);
+    sourceFileHandlerArrayListImpl.loadFile(fileInfo);
+
+    List<String> newContents = new ArrayList<>();
+    newContents.addAll(fileInfo.getLines());
+
+    List<List<String>> fileVersions = new ArrayList<>();
+    List<Integer> sizes = new ArrayList<>();
+    int K = N;
+    int R = 15;
+    for (int i = 0; i < R; ++i) {
+      fileVersions.add(clone(newContents));
+      sizes.add(K);
+    }
+
+    for (int i = 0; i < N; ++i) {
+      int len = newContents.size();
+      int toss= random.nextInt() % 3;
+      int index = random.nextInt(len);
+      if (toss == 0) {
+        newContents.remove(index);
+      } else if (toss == 1) {
+        newContents.add(index, "Text to be inserted");
+      } else {
+        newContents.set(index, "pre " + newContents.get(index) + " post");
+      }
+
+      List<String> clonedList = clone(newContents);
+      fileVersions.add(clonedList);
+
+      Cursor cursor = new Cursor(0, 0);
+      EditRequest editRequest = new EditRequest( 0, K, clone(newContents), fileName, cursor);
+      sourceFileHandlerArrayListImpl.editLines(editRequest);
+
+      PageRequest pageRequest = new PageRequest(0, fileName, newContents.size(), new Cursor(0,0));
+      Page page = sourceFileHandlerArrayListImpl.getLinesFrom(pageRequest);
+      K = page.getLines().size();
+      sizes.add(newContents.size());
+    }
+
+    final UndoRequest undoRequest = new UndoRequest(fileName);
+    Cursor cursor = new Cursor(0, 0);
+
+    for (int i = fileVersions.size() - 2 ; i >= 0; --i) {
+      List<String> thisVersion = fileVersions.get(i);
+      Integer sz = sizes.get(i);
+      sourceFileHandlerArrayListImpl.undo(undoRequest);
+      PageRequest pageRequest = new PageRequest(0, fileName, sz, cursor);
+
+      Page page = sourceFileHandlerArrayListImpl.getLinesFrom(pageRequest);
+      assertEquals(thisVersion, page.getLines());
+    }
+  }
+
+  @Test
+  @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
+  void randomUpdatesAndUndoTest() {
+    int seed = 0x1231;
+    Random random = new Random(seed);
+    String fileName = "randomInsertUpdateDelete";
+    SourceFileHandlerArrayListImpl sourceFileHandlerArrayListImpl = getSourceFileHandlerArrayList(fileName);
+
+    int N = 500;
+    FileInfo fileInfo = getLargeSampleFileInfo(fileName, N);
+    sourceFileHandlerArrayListImpl.loadFile(fileInfo);
+
+    List<String> newContents = new ArrayList<>();
+    newContents.addAll(fileInfo.getLines());
+
+    List<List<String>> fileVersions = new ArrayList<>();
+    List<Integer> sizes = new ArrayList<>();
+    int K = N;
+    fileVersions.add(clone(newContents));
+    sizes.add(K);
+
+    for (int i = 0; i < N; ++i) {
+      int len = newContents.size();
+      int toss= random.nextInt() % 3;
+      int index = random.nextInt(len);
+      if (toss == 0) {
+        newContents.remove(index);
+      } else if (toss == 1) {
+        newContents.add(index, "Text to be inserted");
+      } else {
+        newContents.set(index, "pre " + newContents.get(index) + " post");
+      }
+
+      List<String> clonedList = clone(newContents);
+      fileVersions.add(clonedList);
+
+      Cursor cursor = new Cursor(0, 0);
+      EditRequest editRequest = new EditRequest( 0, K, clone(newContents), fileName, cursor);
+      sourceFileHandlerArrayListImpl.editLines(editRequest);
+
+      PageRequest pageRequest = new PageRequest(0, fileName, newContents.size(), new Cursor(0,0));
+      Page page = sourceFileHandlerArrayListImpl.getLinesFrom(pageRequest);
+      K = page.getLines().size();
+      sizes.add(newContents.size());
+    }
+
+    final UndoRequest undoRequest = new UndoRequest(fileName);
+    Cursor cursor = new Cursor(0, 0);
+
+    assert (fileVersions.size() == N + 1);
+    for (int i = fileVersions.size() - 2 ; i >= 0; --i) {
+      List<String> thisVersion = fileVersions.get(i);
+      Integer sz = sizes.get(i);
+      sourceFileHandlerArrayListImpl.undo(undoRequest);
+      PageRequest pageRequest = new PageRequest(0, fileName, sz, cursor);
+
+      Page page = sourceFileHandlerArrayListImpl.getLinesFrom(pageRequest);
+      assertEquals(thisVersion, page.getLines());
+    }
+  }
+  @Test
+  void getCursorPage() {
+    // FIXME: important for the frontend to work
+  }
+
 }
