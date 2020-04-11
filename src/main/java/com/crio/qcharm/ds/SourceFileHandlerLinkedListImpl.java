@@ -7,11 +7,8 @@ import com.crio.qcharm.request.SearchRequest;
 import com.crio.qcharm.request.UndoRequest;
 
 import java.util.ArrayList;
-import java.util.Deque;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
-import java.util.stream.Collectors;
 
 public class SourceFileHandlerLinkedListImpl implements SourceFileHandler {
   private SourceFileVersionLinkedListImpl obj;

@@ -7,6 +7,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class SourceFileVersionLinkedListImpl implements SourceFileVersion {
@@ -247,13 +249,35 @@ public class SourceFileVersionLinkedListImpl implements SourceFileVersion {
   // https://www.geeksforgeeks.org/kmp-algorithm-for-pattern-searching/
 
   public List<Cursor> getCursors(SearchRequest searchRequest) {
-    List<Cursor> search = new LinkedList<>();
     try {
-      search = searchPattern(searchRequest.getPattern().toCharArray(), this.fileData);
+      String pattern = searchRequest.getPattern();
+      if (pattern.isEmpty()) {
+        return new LinkedList<Cursor>();
+      }
+      List<Cursor> search = new LinkedList<>();
+      search = BMP(this.fileData,pattern);
+      return search;
     } catch (Exception e) {
-      return new LinkedList<>();
+      e.printStackTrace();
     }
-    return search;
+    return null;
+  }
+
+  public static List<Cursor> BMP(LinkedList<String> ans, String pat) {
+    Pattern pattern = Pattern.compile(pat);
+    List<Cursor> cursorList = new LinkedList<Cursor>();
+    int index = 0;
+    for (String txt : ans) {
+      Matcher matches = pattern.matcher(txt);
+      int i = 0;
+      while (matches.find(i)) {
+        cursorList.add(new Cursor(index, matches.start()));
+        i = matches.start() + 1;
+        ;
+      }
+      index += 1;
+    }
+    return cursorList;
   }
 
   static void computeLPSArray(char[] pat, int M, int lps[]) {
