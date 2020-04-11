@@ -246,66 +246,66 @@ public class SourceFileVersionLinkedListImpl implements SourceFileVersion {
   // Reference:
   // https://www.geeksforgeeks.org/kmp-algorithm-for-pattern-searching/
 
-  @Override
   public List<Cursor> getCursors(SearchRequest searchRequest) {
+    List<Cursor> search = new LinkedList<>();
     try {
-      String pattern = searchRequest.getPattern();
-      if (pattern.isEmpty()) {
-        return new LinkedList<Cursor>();
-      }
-      List<Cursor> searchResults = new LinkedList<Cursor>();
-      int sizeOfPattern = pattern.length();
-      int longestProperSuffix[] = new int[sizeOfPattern];
-      computeLongestProperSuffix(pattern, sizeOfPattern, longestProperSuffix);
-      for (int i = 0; i < this.fileData.size(); i++) {
-        String line = this.fileData.get(i);
-        int indexOfPat = 0, indexOfStr = 0;
-        while (indexOfStr < line.length()) {
-          if (line.charAt(indexOfStr) == pattern.charAt(indexOfPat)) {
-            indexOfStr++;
-            indexOfPat++;
-          }
-          if (indexOfPat == sizeOfPattern) {
-            Cursor cursor = new Cursor(i, indexOfStr - indexOfPat);
-            searchResults.add(cursor);
-            indexOfPat = longestProperSuffix[indexOfPat - 1];
-          } else if (pattern.charAt(indexOfPat) != line.charAt(indexOfStr)) {
-            if (indexOfPat != 0) {
-              indexOfPat = longestProperSuffix[indexOfPat - 1];
-            } else {
-              indexOfStr++;
-            }
-          }
-        }
-      }
-      return searchResults;
+      search = searchPattern(searchRequest.getPattern().toCharArray(), this.fileData);
     } catch (Exception e) {
-      e.printStackTrace();
+      return new LinkedList<>();
     }
-    return null;
+    return search;
   }
 
-  void computeLongestProperSuffix(String pattern, int sizeOfPattern, int[] longestProperSuffix) {
-    try {
-      longestProperSuffix[0] = 0;
-      int i = 1, length = 0;
-      while (i < sizeOfPattern) {
-        if (pattern.charAt(i) == pattern.charAt(length)) {
-          length++;
-          longestProperSuffix[i] = length;
-          i++;
+  static void computeLPSArray(char[] pat, int M, int lps[]) {
+    int len = 0;
+    int i = 1;
+    lps[0] = 0;
+
+    while (i < M) {
+      if (pat[i] == pat[len]) {
+        len++;
+        lps[i] = len;
+        i++;
+      } else {
+        if (len != 0) {
+          len = lps[len - 1];
         } else {
-          if (length > 0) {
-            length = longestProperSuffix[length - 1];
-          } else {
-            longestProperSuffix[i] = length;
-            i++;
-          }
+          lps[i] = len;
+          i++;
         }
       }
-    } catch (Exception e) {
-      e.printStackTrace();
     }
+  }
+
+  static LinkedList<Cursor> searchPattern(char[] pat, List<String> s) {
+    LinkedList<Cursor> ans = new LinkedList<>();
+    int M = pat.length;
+    int lps[] = new int[M];
+    int count = 0;
+    for (String txt : s) {
+      int N = txt.length();
+      char[] txtaray = txt.toCharArray();
+      int j = 0;
+      computeLPSArray(pat, M, lps);
+      int i = 0;
+      while (i < N) {
+        if (pat[j] == txtaray[i]) {
+          j++;
+          i++;
+        }
+        if (j == M) {
+          ans.add(new Cursor(count, i - j));
+          j = lps[j - 1];
+        } else if (i < N && pat[j] != txtaray[i]) {
+          if (j != 0)
+            j = lps[j - 1];
+          else
+            i = i + 1;
+        }
+      }
+      count++;
+    }
+    return ans;
   }
 
   @Override
