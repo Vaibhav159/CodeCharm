@@ -6,16 +6,28 @@ import com.crio.qcharm.request.SearchRequest;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.TreeSet;
 
 public class SourceFileVersionArrayListImpl implements SourceFileVersion {
   private List<String> fileData = new ArrayList<String>();
   private String fileName;
 
+
+  public SourceFileVersionArrayListImpl(FileInfo fileInfo) {
+    //this.fileData = fileInfo.getLines().stream().collect(Collectors.toList());
+    this.fileData=new ArrayList<>(fileInfo.getLines());
+    this.fileName = fileInfo.getFileName();
+  }
+
+  public SourceFileVersionArrayListImpl() {
+  }
+
   public SourceFileVersionArrayListImpl(SourceFileVersionArrayListImpl obj) {
     this.fileName = obj.fileName;
-    this.fileData = obj.getAllLines().stream().collect(Collectors.toList());
+    //this.fileData = obj.getAllLines().stream().collect(Collectors.toList());
+    this.fileData=new ArrayList<>(obj.fileData);
   }
 
   // TODO: CRIO_TASK_MODULE_LOAD_FILE
@@ -30,10 +42,7 @@ public class SourceFileVersionArrayListImpl implements SourceFileVersion {
   // Recommendations:
   // 1. Use Java ArrayList to store the lines received from fileInfo
 
-  public SourceFileVersionArrayListImpl(FileInfo fileInfo) {
-    this.fileData = fileInfo.getLines().stream().collect(Collectors.toList());
-    this.fileName = fileInfo.getFileName();
-  }
+
 
   // TODO: CRIO_TASK_MODULE_LOAD_FILE
   // Input:
@@ -53,15 +62,14 @@ public class SourceFileVersionArrayListImpl implements SourceFileVersion {
   // Then lines returned is
   // (line number 25, line number 26 ... , line number 48, line number49)
 
-  public SourceFileVersionArrayListImpl() {
-  }
+
 
   @Override
   public SourceFileVersion apply(List<Edits> edits) {
     List<String> lines = new ArrayList<>();
     lines.addAll(lines);
 
-    SourceFileVersionArrayListImpl latest = new SourceFileVersionArrayListImpl();
+    //SourceFileVersionArrayListImpl latest = new SourceFileVersionArrayListImpl();
 
     for (Edits oneEdit : edits) {
       if (oneEdit instanceof UpdateLines) {
@@ -85,15 +93,13 @@ public class SourceFileVersionArrayListImpl implements SourceFileVersion {
   @Override
   public void apply(SearchReplace searchReplace) {
     String pattern = searchReplace.getPattern();
-    String new_pattern = searchReplace.getNewPattern();
-    List<Cursor> cursors = getCursors(new SearchRequest(0, pattern, this.fileName));
-    int num = -1;
-    for (Cursor cursor : cursors) {
-      if (num == cursor.getLineNo()) {
-        continue;
-      }
-      num = cursor.getLineNo();
-      this.fileData.set(num, StringUtils.replace(this.fileData.get(num), pattern, new_pattern));
+    List<Cursor> cursors = searchPattern(searchReplace.getPattern().toCharArray(), this.fileData);
+    TreeSet<Cursor> ts = new TreeSet<>(Comparator.comparing(Cursor::getLineNo));
+    ts.addAll(cursors);
+    for (Cursor c : ts) {
+      String temp = this.fileData.get(c.getLineNo());
+      temp = StringUtils.replace(temp, pattern, searchReplace.getNewPattern());
+      this.fileData.set(c.getLineNo(), temp);
     }
   }
 
@@ -216,13 +222,11 @@ public class SourceFileVersionArrayListImpl implements SourceFileVersion {
   @Override
   public Page getLinesFrom(PageRequest pageRequest) {
     int lineNumber = pageRequest.getStartingLineNo();
-    if (lineNumber >= this.fileData.size()) {
-      return new Page(new ArrayList<String>(), lineNumber, pageRequest.getFileName(), new Cursor(lineNumber, 0));
-    }
     int numberOfLines = pageRequest.getNumberOfLines();
-    int num = Math.min(getAllLines().size(), lineNumber + numberOfLines);
-    return new Page(fileData.subList(lineNumber, num), lineNumber, pageRequest.getFileName(),
-        new Cursor(lineNumber, 0));
+    return new Page(
+        this.fileData.subList(lineNumber,
+            this.fileData.size() < lineNumber + numberOfLines ? this.fileData.size() : lineNumber + numberOfLines),
+        lineNumber, pageRequest.getFileName(), new Cursor(lineNumber, 0));
   }
 
   // TODO: CRIO_TASK_MODULE_SEARCH
@@ -257,55 +261,27 @@ public class SourceFileVersionArrayListImpl implements SourceFileVersion {
   // Reference:
   // https://www.geeksforgeeks.org/kmp-algorithm-for-pattern-searching/
 
-  @Override
   public List<Cursor> getCursors(SearchRequest searchRequest) {
-    List<Cursor> search = new ArrayList<Cursor>();
-    int start = searchRequest.getStartingLineNo();
-    String pat = searchRequest.getPattern();
-    if (pat.isEmpty()) {
-      return new ArrayList<Cursor>();
+    try {
+      String pattern = searchRequest.getPattern();
+      if (pattern.isEmpty()) {
+        return new ArrayList<Cursor>();
+      }
+      List<Cursor> search = new ArrayList<>();
+      search = searchPattern(pattern.toCharArray(), this.fileData);
+      return search;
+    } catch (Exception e) {
+      return null;
     }
-    int M = pat.length();
-    int lps[] = new int[M];
-    LPS_Array(pat, M, lps);
-    for (int k = start; k < fileData.size(); k++) {
-      String txt = fileData.get(k);
-      KMP_search(pat, txt, search, lps, k, M);
-    }
-    return search;
   }
 
-  void KMP_search(String pat, String txt, List<Cursor> search, int lps[], int k, int M) {
-    int N = txt.length();
-    int i = 0;
-    int j = 0;
-
-    while (i < N) {
-      if (pat.charAt(j) == txt.charAt(i)) {
-        i++;
-        j++;
-      }
-      if (j == M) {
-        search.add(new Cursor(k, i - j));
-        j = lps[j - 1];
-      } else if (i < N && pat.charAt(j) != txt.charAt(i)) {
-        if (j != 0) {
-          j = lps[j - 1];
-        } else {
-          i++;
-        }
-      }
-    }
-
-  }
-
-  void LPS_Array(String pat, int M, int lps[]) {
+  static void computeLPSArray(char[] pat, int M, int lps[]) {
     int len = 0;
     int i = 1;
     lps[0] = 0;
 
     while (i < M) {
-      if (pat.charAt(i) == pat.charAt(len)) {
+      if (pat[i] == pat[len]) {
         len++;
         lps[i] = len;
         i++;
@@ -318,6 +294,37 @@ public class SourceFileVersionArrayListImpl implements SourceFileVersion {
         }
       }
     }
+  }
+
+  static ArrayList<Cursor> searchPattern(char[] pat, List<String> s) {
+    ArrayList<Cursor> ans = new ArrayList<>();
+    int M = pat.length;
+    int lps[] = new int[M];
+    int count = 0;
+    for (String txt : s) {
+      int N = txt.length();
+      char[] txtaray = txt.toCharArray();
+      int j = 0;
+      computeLPSArray(pat, M, lps);
+      int i = 0;
+      while (i < N) {
+        if (pat[j] == txtaray[i]) {
+          j++;
+          i++;
+        }
+        if (j == M) {
+          ans.add(new Cursor(count, i - j));
+          j = lps[j - 1];
+        } else if (i < N && pat[j] != txtaray[i]) {
+          if (j != 0)
+            j = lps[j - 1];
+          else
+            i = i + 1;
+        }
+      }
+      count++;
+    }
+    return ans;
   }
 
   @Override

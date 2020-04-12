@@ -5,13 +5,11 @@ import com.crio.qcharm.request.PageRequest;
 import com.crio.qcharm.request.SearchReplaceRequest;
 import com.crio.qcharm.request.SearchRequest;
 import com.crio.qcharm.request.UndoRequest;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
 public class SourceFileHandlerArrayListImpl implements SourceFileHandler {
   private SourceFileVersionArrayListImpl obj;
-  private SourceFileVersion sfh = new SourceFileVersionArrayListImpl();
   private CopyBuffer CpyBuf;
   Stack<SourceFileVersionArrayListImpl> StackUndo = new Stack<>();
   Stack<SourceFileVersionArrayListImpl> StackRedo = new Stack<>();
@@ -50,13 +48,8 @@ public class SourceFileHandlerArrayListImpl implements SourceFileHandler {
 
   @Override
   public Page loadFile(FileInfo fileInfo) {
-    SourceFileVersionArrayListImpl startFifty = new SourceFileVersionArrayListImpl(fileInfo);
-    this.obj = startFifty;
-    int min = 50;
-    if (fileInfo.getLines().size() < 50) {
-      min = fileInfo.getLines().size();
-    }    Page one = new Page(startFifty.getAllLines().subList(0, min), 0, fileInfo.getFileName(), new Cursor(0, 0));
-    return one;
+    this.obj = new SourceFileVersionArrayListImpl(fileInfo);
+    return new Page(this.obj.getAllLines().subList(0,fileInfo.getLines().size() < 50?fileInfo.getLines().size() : 50), 0, fileInfo.getFileName(), new Cursor(0, 0));
   }
 
   // TODO: CRIO_TASK_MODULE_LOAD_FILE

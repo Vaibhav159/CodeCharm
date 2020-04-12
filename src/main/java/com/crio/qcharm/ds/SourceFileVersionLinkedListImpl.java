@@ -9,7 +9,6 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.TreeSet;
-import java.util.stream.Collectors;
 
 public class SourceFileVersionLinkedListImpl implements SourceFileVersion {
   private LinkedList<String> fileData = new LinkedList<String>();
@@ -39,7 +38,7 @@ public class SourceFileVersionLinkedListImpl implements SourceFileVersion {
   public SourceFileVersionLinkedListImpl(SourceFileVersionLinkedListImpl obj) {
     this.filename = obj.filename;
     //this.fileData = obj.getAllLines().stream().collect(Collectors.toCollection(LinkedList::new));
-    this.fileData=new LinkedList<>(obj.getAllLines());
+    this.fileData=new LinkedList<>(obj.fileData);
     }
 
   @Override
@@ -71,13 +70,12 @@ public class SourceFileVersionLinkedListImpl implements SourceFileVersion {
   @Override
   public void apply(SearchReplace searchReplace) {
     String pattern = searchReplace.getPattern();
-    String new_pattern = searchReplace.getNewPattern();
     List<Cursor> cursors = searchPattern(searchReplace.getPattern().toCharArray(), this.fileData);
     TreeSet<Cursor> ts = new TreeSet<>(Comparator.comparing(Cursor::getLineNo));
     ts.addAll(cursors);
     for (Cursor c : ts) {
       String temp = this.fileData.get(c.getLineNo());
-      temp = StringUtils.replace(temp, pattern, new_pattern);
+      temp = StringUtils.replace(temp, pattern, searchReplace.getNewPattern());
       this.fileData.set(c.getLineNo(), temp);
     }
 
