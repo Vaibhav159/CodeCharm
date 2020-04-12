@@ -30,10 +30,7 @@ public class SourceFileVersionLinkedListImpl implements SourceFileVersion {
   SourceFileVersionLinkedListImpl(FileInfo fileInfo) {
     //this.fileData = fileInfo.getLines().stream().collect(Collectors.toCollection(LinkedList::new));
     this.filename = fileInfo.getFileName();
-    List<String> temp = fileInfo.getLines();
-    for (String p : temp) {
-      this.fileData.add(p);
-    }
+    this.fileData=new LinkedList<>(fileInfo.getLines());
   }
 
   public SourceFileVersionLinkedListImpl() {
@@ -41,8 +38,9 @@ public class SourceFileVersionLinkedListImpl implements SourceFileVersion {
 
   public SourceFileVersionLinkedListImpl(SourceFileVersionLinkedListImpl obj) {
     this.filename = obj.filename;
-    this.fileData = obj.getAllLines().stream().collect(Collectors.toCollection(LinkedList::new));
-  }
+    //this.fileData = obj.getAllLines().stream().collect(Collectors.toCollection(LinkedList::new));
+    this.fileData=new LinkedList<>(obj.getAllLines());
+    }
 
   @Override
   public SourceFileVersion apply(List<Edits> edits) {
@@ -82,18 +80,7 @@ public class SourceFileVersionLinkedListImpl implements SourceFileVersion {
       temp = StringUtils.replace(temp, pattern, new_pattern);
       this.fileData.set(c.getLineNo(), temp);
     }
-    /*int num = -1;
 
-    for (Cursor cursor : cursors) {
-      if (num == cursor.getLineNo()) {
-        continue;
-      }
-      num = cursor.getLineNo();
-      this.fileData.set(num, StringUtils.replace(this.fileData.get(num), pattern, new_pattern));
-    }
-    for(String s : this.fileData) {
-      s=StringUtils.replaceAll(s, pattern, new_pattern);
-    }*/
   }
 
   // TODO: CRIO_TASK_MODULE_IMPROVING_EDITS
