@@ -6,14 +6,18 @@ import com.crio.qcharm.request.SearchReplaceRequest;
 import com.crio.qcharm.request.SearchRequest;
 import com.crio.qcharm.request.UndoRequest;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
+import java.util.stream.Collectors;
 
 public class SourceFileHandlerLinkedListImpl implements SourceFileHandler {
   private SourceFileVersionLinkedListImpl obj;
   private CopyBuffer CpyBuf;
-  Stack<SourceFileVersionLinkedListImpl> StackUndo = new Stack<>();
+  Deque<SourceFileVersionLinkedListImpl> StackUndo = new ArrayDeque<>();
   Stack<SourceFileVersionLinkedListImpl> StackRedo = new Stack<>();
 
   public SourceFileHandlerLinkedListImpl(String fileName) {
@@ -57,9 +61,11 @@ public class SourceFileHandlerLinkedListImpl implements SourceFileHandler {
   public Page loadFile(FileInfo fileInfo) {
     SourceFileVersionLinkedListImpl startFifty = new SourceFileVersionLinkedListImpl(fileInfo);
     this.obj = startFifty;
-    int min = Math.min(50, fileInfo.getLines().size());
-    Page one = new Page(startFifty.getAllLines().subList(0, min), 0, fileInfo.getFileName(), new Cursor(0, 0));
-    return one;
+    int min = 50;
+    if (fileInfo.getLines().size() < 50) {
+      min = fileInfo.getLines().size();
+    }
+    return new Page(startFifty.getAllLines().subList(0, min).stream().collect(Collectors.toList()), 0, fileInfo.getFileName(), new Cursor(0, 0));
   }
 
   // TODO: CRIO_TASK_MODULE_IMPROVING_EDITS
@@ -234,9 +240,7 @@ public class SourceFileHandlerLinkedListImpl implements SourceFileHandler {
     UpdateLines u = new UpdateLines(editRequest.getStartingLineNo(),
         editRequest.getEndingLineNo() - editRequest.getStartingLineNo(), editRequest.getNewContent(),
         editRequest.getCursorAt());
-    List<Edits> e = new ArrayList<>();
-    e.add(u);
-    this.obj.apply(e);
+    this.obj.apply(u);
   }
 
   // TODO: CRIO_TASK_MODULE_SEARCH_REPLACE

@@ -70,6 +70,8 @@ test {
     }
     useJUnitPlatform {
     }
+    testLogging.events ("standard_error");
+    testLogging.events ("standard_out");
     afterSuite { desc, result ->
         if (!desc.parent) {
             println "\nTEST RESULT: ${result.resultType}"

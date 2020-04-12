@@ -52,8 +52,10 @@ public class SourceFileHandlerArrayListImpl implements SourceFileHandler {
   public Page loadFile(FileInfo fileInfo) {
     SourceFileVersionArrayListImpl startFifty = new SourceFileVersionArrayListImpl(fileInfo);
     this.obj = startFifty;
-    int min = Math.min(50, fileInfo.getLines().size());
-    Page one = new Page(startFifty.getAllLines().subList(0, min), 0, fileInfo.getFileName(), new Cursor(0, 0));
+    int min = 50;
+    if (fileInfo.getLines().size() < 50) {
+      min = fileInfo.getLines().size();
+    }    Page one = new Page(startFifty.getAllLines().subList(0, min), 0, fileInfo.getFileName(), new Cursor(0, 0));
     return one;
   }
 
@@ -179,8 +181,7 @@ public class SourceFileHandlerArrayListImpl implements SourceFileHandler {
 
   @Override
   public SourceFileVersion cloneObj(SourceFileVersion ver) {
-    this.sfh = ver;
-    return sfh;
+    return new SourceFileVersionLinkedListImpl((SourceFileVersionLinkedListImpl) ver);
   }
 
   // TODO: CRIO_TASK_MODULE_CUT_COPY_PASTE
@@ -232,9 +233,7 @@ public class SourceFileHandlerArrayListImpl implements SourceFileHandler {
     UpdateLines u = new UpdateLines(editRequest.getStartingLineNo(),
         editRequest.getEndingLineNo() - editRequest.getStartingLineNo(), editRequest.getNewContent(),
         editRequest.getCursorAt());
-    List<Edits> e = new ArrayList<>();
-    e.add(u);
-    this.obj.apply(e);
+    this.obj.apply(u);
   }
 
   // TODO: CRIO_TASK_MODULE_SEARCH_REPLACE

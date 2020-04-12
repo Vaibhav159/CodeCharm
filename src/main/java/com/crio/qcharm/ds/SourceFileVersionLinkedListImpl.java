@@ -7,8 +7,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class SourceFileVersionLinkedListImpl implements SourceFileVersion {
@@ -28,7 +26,8 @@ public class SourceFileVersionLinkedListImpl implements SourceFileVersion {
   // 1. Use Java LinkedList to store the lines received from fileInfo
 
   SourceFileVersionLinkedListImpl(FileInfo fileInfo) {
-    this.fileData = fileInfo.getLines().stream().collect(Collectors.toCollection(LinkedList::new));
+    //this.fileData = fileInfo.getLines().stream().collect(Collectors.toCollection(LinkedList::new));
+    this.fileData = new LinkedList<>(fileInfo.getLines());
     this.filename = fileInfo.getFileName();
   }
 
@@ -79,6 +78,9 @@ public class SourceFileVersionLinkedListImpl implements SourceFileVersion {
       num = cursor.getLineNo();
       this.fileData.set(num, StringUtils.replace(this.fileData.get(num), pattern, new_pattern));
     }
+    /*for(String s : this.fileData) {
+      s=StringUtils.replaceAll(s, pattern, new_pattern);
+    }*/
   }
 
   // TODO: CRIO_TASK_MODULE_IMPROVING_EDITS
@@ -247,6 +249,70 @@ public class SourceFileVersionLinkedListImpl implements SourceFileVersion {
   // speed.
   // Reference:
   // https://www.geeksforgeeks.org/kmp-algorithm-for-pattern-searching/
+/*
+  @Override
+  public List<Cursor> getCursors(SearchRequest searchRequest) {
+    try {
+      String pattern = searchRequest.getPattern();
+      if (pattern.isEmpty()) {
+        return new LinkedList<Cursor>();
+      }
+      List<Cursor> searchResults = new LinkedList<Cursor>();
+      int sizeOfPattern = pattern.length();
+      int longestProperSuffix[] = new int[sizeOfPattern];
+      computeLongestProperSuffix(pattern, sizeOfPattern, longestProperSuffix);
+      for (int i = 0; i < this.fileData.size(); i++) {
+        String line = this.fileData.get(i);
+        int indexOfPat = 0, indexOfStr = 0;
+        while (indexOfStr < line.length()) {
+          if (line.charAt(indexOfStr) == pattern.charAt(indexOfPat)) {
+            indexOfStr++;
+            indexOfPat++;
+          }
+          if (indexOfPat == sizeOfPattern) {
+            Cursor cursor = new Cursor(i, indexOfStr - indexOfPat);
+            searchResults.add(cursor);
+            indexOfPat = longestProperSuffix[indexOfPat - 1];
+          } else if (pattern.charAt(indexOfPat) != line.charAt(indexOfStr)) {
+            if (indexOfPat != 0) {
+              indexOfPat = longestProperSuffix[indexOfPat - 1];
+            } else {
+              indexOfStr++;
+            }
+          }
+        }
+      }
+      return searchResults;
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+  void computeLongestProperSuffix(String pattern, int sizeOfPattern, int[] longestProperSuffix) {
+    try {
+      longestProperSuffix[0] = 0;
+      int i = 1, length = 0;
+      while (i < sizeOfPattern) {
+        if (pattern.charAt(i) == pattern.charAt(length)) {
+          length++;
+          longestProperSuffix[i] = length;
+          i++;
+        } else {
+          if (length > 0) {
+            length = longestProperSuffix[length - 1];
+          } else {
+            longestProperSuffix[i] = length;
+            i++;
+          }
+        }
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+*/
+
 
   public List<Cursor> getCursors(SearchRequest searchRequest) {
     try {
@@ -255,29 +321,11 @@ public class SourceFileVersionLinkedListImpl implements SourceFileVersion {
         return new LinkedList<Cursor>();
       }
       List<Cursor> search = new LinkedList<>();
-      search = BMP(this.fileData,pattern);
+      search = searchPattern(pattern.toCharArray(), this.fileData);
       return search;
     } catch (Exception e) {
-      e.printStackTrace();
+      return null;
     }
-    return null;
-  }
-
-  public static List<Cursor> BMP(LinkedList<String> ans, String pat) {
-    Pattern pattern = Pattern.compile(pat);
-    List<Cursor> cursorList = new LinkedList<Cursor>();
-    int index = 0;
-    for (String txt : ans) {
-      Matcher matches = pattern.matcher(txt);
-      int i = 0;
-      while (matches.find(i)) {
-        cursorList.add(new Cursor(index, matches.start()));
-        i = matches.start() + 1;
-        ;
-      }
-      index += 1;
-    }
-    return cursorList;
   }
 
   static void computeLPSArray(char[] pat, int M, int lps[]) {
