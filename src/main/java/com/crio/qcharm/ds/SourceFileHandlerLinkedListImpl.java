@@ -36,7 +36,7 @@ public class SourceFileHandlerLinkedListImpl implements SourceFileHandler {
 
   @Override
   public SourceFileVersion getLatestSourceFileVersion(String fileName) {
-    return obj;
+    return null;
   }
 
   // TODO: CRIO_TASK_MODULE_IMPROVING_EDITS
@@ -60,7 +60,7 @@ public class SourceFileHandlerLinkedListImpl implements SourceFileHandler {
   @Override
   public Page loadFile(FileInfo fileInfo) {
     this.obj = new SourceFileVersionLinkedListImpl(fileInfo);
-    return new Page(this.obj.getAllLines().subList(0,fileInfo.getLines().size() < 50?fileInfo.getLines().size() : 50).stream().collect(Collectors.toList()), 0, fileInfo.getFileName(), new Cursor(0, 0));
+    return new Page(this.obj.getAllLines().subList(0,fileInfo.getLines().size() < 50?fileInfo.getLines().size() : 50), 0, fileInfo.getFileName(), new Cursor(0, 0));
   }
 
   // TODO: CRIO_TASK_MODULE_IMPROVING_EDITS

@@ -5,8 +5,10 @@ import com.crio.qcharm.request.SearchRequest;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 public class SourceFileVersionLinkedListImpl implements SourceFileVersion {
@@ -26,9 +28,12 @@ public class SourceFileVersionLinkedListImpl implements SourceFileVersion {
   // 1. Use Java LinkedList to store the lines received from fileInfo
 
   SourceFileVersionLinkedListImpl(FileInfo fileInfo) {
-    this.fileData = fileInfo.getLines().stream().collect(Collectors.toCollection(LinkedList::new));
-    //this.fileData = new LinkedList<>(fileInfo.getLines());
+    //this.fileData = fileInfo.getLines().stream().collect(Collectors.toCollection(LinkedList::new));
     this.filename = fileInfo.getFileName();
+    List<String> temp = fileInfo.getLines();
+    for (String p : temp) {
+      this.fileData.add(p);
+    }
   }
 
   public SourceFileVersionLinkedListImpl() {
@@ -44,7 +49,7 @@ public class SourceFileVersionLinkedListImpl implements SourceFileVersion {
     List<String> lines = new LinkedList<>();
     lines.addAll(lines);
 
-    SourceFileVersionLinkedListImpl latest = new SourceFileVersionLinkedListImpl();
+    //SourceFileVersionLinkedListImpl latest = new SourceFileVersionLinkedListImpl();
 
     for (Edits oneEdit : edits) {
       if (oneEdit instanceof UpdateLines) {
@@ -69,8 +74,16 @@ public class SourceFileVersionLinkedListImpl implements SourceFileVersion {
   public void apply(SearchReplace searchReplace) {
     String pattern = searchReplace.getPattern();
     String new_pattern = searchReplace.getNewPattern();
-    List<Cursor> cursors = getCursors(new SearchRequest(0, pattern, this.filename));
-    int num = -1;
+    List<Cursor> cursors = searchPattern(searchReplace.getPattern().toCharArray(), this.fileData);
+    TreeSet<Cursor> ts = new TreeSet<>(Comparator.comparing(Cursor::getLineNo));
+    ts.addAll(cursors);
+    for (Cursor c : ts) {
+      String temp = this.fileData.get(c.getLineNo());
+      temp = StringUtils.replace(temp, pattern, new_pattern);
+      this.fileData.set(c.getLineNo(), temp);
+    }
+    /*int num = -1;
+
     for (Cursor cursor : cursors) {
       if (num == cursor.getLineNo()) {
         continue;
@@ -78,7 +91,7 @@ public class SourceFileVersionLinkedListImpl implements SourceFileVersion {
       num = cursor.getLineNo();
       this.fileData.set(num, StringUtils.replace(this.fileData.get(num), pattern, new_pattern));
     }
-    /*for(String s : this.fileData) {
+    for(String s : this.fileData) {
       s=StringUtils.replaceAll(s, pattern, new_pattern);
     }*/
   }
@@ -159,11 +172,10 @@ public class SourceFileVersionLinkedListImpl implements SourceFileVersion {
   @Override
   public Page getLinesBefore(PageRequest pageRequest) {
     int lineNumber = pageRequest.getStartingLineNo();
+    int numberOfLines = pageRequest.getNumberOfLines();
     if (lineNumber == 0) {
       return new Page(new LinkedList<String>(), 0, pageRequest.getFileName(), pageRequest.getCursorAt());
-    }
-    int numberOfLines = pageRequest.getNumberOfLines();
-    if (lineNumber - numberOfLines < 0) {
+    }else if (lineNumber - numberOfLines < 0) {
       return new Page(this.fileData.subList(0, lineNumber), 0, pageRequest.getFileName(), pageRequest.getCursorAt());
     }
     return new Page(fileData.subList(lineNumber - numberOfLines, lineNumber), lineNumber - numberOfLines,
@@ -191,11 +203,10 @@ public class SourceFileVersionLinkedListImpl implements SourceFileVersion {
   @Override
   public Page getLinesAfter(PageRequest pageRequest) {
     int lineNumber = pageRequest.getStartingLineNo();
+    int numberOfLines = pageRequest.getNumberOfLines();
     if (lineNumber >= this.fileData.size()) {
       return new Page(new LinkedList<String>(), lineNumber, pageRequest.getFileName(), pageRequest.getCursorAt());
-    }
-    int numberOfLines = pageRequest.getNumberOfLines();
-    if (lineNumber + numberOfLines + 1 > fileData.size()) {
+    }else if (lineNumber + numberOfLines + 1 > fileData.size()) {
       return new Page(this.fileData.subList(lineNumber + 1, this.fileData.size()), lineNumber + 1,
           pageRequest.getFileName(), pageRequest.getCursorAt());
     }
@@ -224,12 +235,11 @@ public class SourceFileVersionLinkedListImpl implements SourceFileVersion {
   @Override
   public Page getLinesFrom(PageRequest pageRequest) {
     int lineNumber = pageRequest.getStartingLineNo();
-    if (lineNumber >= this.fileData.size()) {
-      return new Page(new LinkedList<String>(), lineNumber, pageRequest.getFileName(), new Cursor(lineNumber, 0));
-    }
     int numberOfLines = pageRequest.getNumberOfLines();
     return new Page(
-        this.fileData.subList(lineNumber,this.fileData.size() < lineNumber + numberOfLines ? this.fileData.size() : lineNumber + numberOfLines),lineNumber, pageRequest.getFileName(), new Cursor(lineNumber, 0));
+        this.fileData.subList(lineNumber,
+            this.fileData.size() < lineNumber + numberOfLines ? this.fileData.size() : lineNumber + numberOfLines),
+        lineNumber, pageRequest.getFileName(), new Cursor(lineNumber, 0));
   }
 
   // TODO: CRIO_TASK_MODULE_IMPROVING_EDITS
