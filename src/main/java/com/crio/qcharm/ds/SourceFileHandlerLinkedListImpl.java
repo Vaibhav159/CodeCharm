@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 public class SourceFileHandlerLinkedListImpl implements SourceFileHandler {
   private SourceFileVersionLinkedListImpl obj;
   private CopyBuffer CpyBuf;
-  Deque<SourceFileVersionLinkedListImpl> StackUndo = new ArrayDeque<>();
+  Stack<SourceFileVersionLinkedListImpl> StackUndo = new Stack<>();
   Stack<SourceFileVersionLinkedListImpl> StackRedo = new Stack<>();
 
   public SourceFileHandlerLinkedListImpl(String fileName) {
@@ -59,13 +59,8 @@ public class SourceFileHandlerLinkedListImpl implements SourceFileHandler {
 
   @Override
   public Page loadFile(FileInfo fileInfo) {
-    SourceFileVersionLinkedListImpl startFifty = new SourceFileVersionLinkedListImpl(fileInfo);
-    this.obj = startFifty;
-    int min = 50;
-    if (fileInfo.getLines().size() < 50) {
-      min = fileInfo.getLines().size();
-    }
-    return new Page(startFifty.getAllLines().subList(0, min).stream().collect(Collectors.toList()), 0, fileInfo.getFileName(), new Cursor(0, 0));
+    this.obj = new SourceFileVersionLinkedListImpl(fileInfo);
+    return new Page(this.obj.getAllLines().subList(0,fileInfo.getLines().size() < 50?fileInfo.getLines().size() : 50).stream().collect(Collectors.toList()), 0, fileInfo.getFileName(), new Cursor(0, 0));
   }
 
   // TODO: CRIO_TASK_MODULE_IMPROVING_EDITS

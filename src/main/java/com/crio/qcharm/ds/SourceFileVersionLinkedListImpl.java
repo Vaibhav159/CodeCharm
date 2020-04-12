@@ -26,8 +26,8 @@ public class SourceFileVersionLinkedListImpl implements SourceFileVersion {
   // 1. Use Java LinkedList to store the lines received from fileInfo
 
   SourceFileVersionLinkedListImpl(FileInfo fileInfo) {
-    //this.fileData = fileInfo.getLines().stream().collect(Collectors.toCollection(LinkedList::new));
-    this.fileData = new LinkedList<>(fileInfo.getLines());
+    this.fileData = fileInfo.getLines().stream().collect(Collectors.toCollection(LinkedList::new));
+    //this.fileData = new LinkedList<>(fileInfo.getLines());
     this.filename = fileInfo.getFileName();
   }
 
@@ -228,9 +228,8 @@ public class SourceFileVersionLinkedListImpl implements SourceFileVersion {
       return new Page(new LinkedList<String>(), lineNumber, pageRequest.getFileName(), new Cursor(lineNumber, 0));
     }
     int numberOfLines = pageRequest.getNumberOfLines();
-    int num = Math.min(getAllLines().size(), lineNumber + numberOfLines);
-    return new Page(fileData.subList(lineNumber, num), lineNumber, pageRequest.getFileName(),
-        new Cursor(lineNumber, 0));
+    return new Page(
+        this.fileData.subList(lineNumber,this.fileData.size() < lineNumber + numberOfLines ? this.fileData.size() : lineNumber + numberOfLines),lineNumber, pageRequest.getFileName(), new Cursor(lineNumber, 0));
   }
 
   // TODO: CRIO_TASK_MODULE_IMPROVING_EDITS
